@@ -1,0 +1,38 @@
+body {
+  font: 14px system-ui, sans-serif;
+  min-width: 340px;
+  padding: 12px;
+}
+
+code {
+  background: #eee;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+li {
+  margin: 6px 0;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+  padding: 6px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 6px 10px;
+}
+
+.status {
+  margin-top: 8px;
+  opacity: 0.8;
+}

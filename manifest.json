@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Obsidian ChatGPT Bridge",
+  "version": "1.6.0",
+  "description": "Adds Obsidian Bridge buttons to ChatGPT, starts bridge setup prompts, and loads Obsidian context through Local REST API.",
+  "permissions": [
+    "clipboardRead",
+    "clipboardWrite",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://127.0.0.1:27124/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "src/shared/constants.js",
+        "src/content/prompts.js",
+        "src/content/chatgptUi.js",
+        "src/content/bridgeBlocks.js",
+        "src/content/modal.js",
+        "src/content/index.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Obsidian ChatGPT Bridge",
+    "default_popup": "src/popup/popup.html"
+  }
+}

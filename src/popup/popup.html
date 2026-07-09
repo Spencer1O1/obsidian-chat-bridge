@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <strong>Obsidian ChatGPT Bridge</strong>
+    <p>Adds Obsidian Bridge buttons to ChatGPT and can load current Obsidian context.</p>
+    <p>Local REST API endpoint: <code>https://127.0.0.1:27124</code></p>
+
+    <label for="apiKey">Local REST API key</label>
+    <input id="apiKey" type="password" placeholder="Bearer token from Obsidian Local REST API settings" />
+
+    <button id="save">Save settings</button>
+    <div id="status" class="status"></div>
+
+    <hr />
+
+    <ul>
+      <li><code>obsidian_update@Vault/path.md</code></li>
+      <li><code>obsidian_create@Vault/path.md</code></li>
+      <li><code>obsidian_append@Vault/path.md</code></li>
+      <li><code>obsidian_prepend@Vault/path.md</code></li>
+      <li><code>obsidian_overwrite@Vault/path.md</code></li>
+    </ul>
+    <p>Most reliable format: put the marker as the first visible line of a code block.</p>
+
+    <script type="module" src="index.js"></script>
+  </body>
+</html>
