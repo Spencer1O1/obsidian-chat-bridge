@@ -37,9 +37,9 @@ export function setupPrompt(options: PromptOptions = {}) {
     : "- When using wikilinks inside note Markdown, prefer full vault-relative paths with display aliases when similarly named notes may exist elsewhere in the vault.";
 
   const blockExamples = [
-    `obsidian_append@${examples}`,
     `obsidian_overwrite@${examples}`,
-    `obsidian_update@${examples}`,
+    `obsidian_create@${examples}`,
+    `obsidian_append@${examples}`,
     `obsidian_prepend@${examples}`
   ].join("\n");
 
@@ -49,10 +49,12 @@ export function setupPrompt(options: PromptOptions = {}) {
     "- If I clearly want another vault path, use that explicit vault-relative path in the bridge block instead.",
     "- Bridge blocks must always include the vault name and the full vault-relative target path.",
     wikilinkRule,
-    "- All bridge blocks upsert: if the target file does not exist, the extension creates it; if it exists, the block action is applied normally.",
-    "- Before major overwrites or full updates, rely on current Obsidian context, current file contents from me, or project sources only if I say they are current.",
-    "- Use obsidian_append for routine logs.",
-    "- Use obsidian_overwrite only for whole-file rebuilds.",
+    "- Supported bridge block actions:",
+    "  - obsidian_overwrite — replace the entire file body. Use for structured notes and any section edit.",
+    "  - obsidian_create — write a new file at the target path. Prefer when the file does not exist yet, but any action upserts a missing file.",
+    "  - obsidian_append — add content to the END of the file only.",
+    "  - obsidian_prepend — add content to the START of the file only.",
+    "- Before overwriting an existing file to make changes within it, rely on current Obsidian context to preserve what is already there.",
     "- Do not output raw obsidian:// URIs, clipboard instructions, or manual copy/paste instructions for vault writes.",
     "- Do not explain the workflow unless I ask."
   ].join("\n");
@@ -101,6 +103,7 @@ export function contextPrompt(options: PromptOptions = {}) {
   const instructions = [
     "Use the following file contents as the current source of truth before suggesting updates.",
     "When updating Obsidian, output only Obsidian bridge blocks.",
+    "Append and prepend only add to the start or end of a file; they do not edit middle sections.",
     defaultRule
   ].join(" ");
 

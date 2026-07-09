@@ -37,7 +37,7 @@ The bridge has two main flows:
    - Those contents are sent into the chat as trusted context
 
 2. Write from the chat back into Obsidian
-   - The chat responds with structured bridge blocks such as `obsidian_append@...` or `obsidian_update@...`
+   - The chat responds with structured bridge blocks such as `obsidian_append@...` or `obsidian_overwrite@...`
    - The extension detects those blocks and adds action buttons
    - Clicking a button writes the content through Obsidian Local REST API
 
