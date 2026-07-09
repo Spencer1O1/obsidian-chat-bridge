@@ -1,0 +1,14 @@
+{
+  "name": "obsidian-chatgpt-bridge",
+  "private": true,
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "watch": "node ./scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.331",
+    "esbuild": "^0.25.9",
+    "typescript": "^5.9.2"
+  }
+}

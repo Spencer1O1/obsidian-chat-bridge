@@ -1,0 +1,64 @@
+(function initObsidianBridgeStartDialog(global) {
+  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const modal = bridge.modalInternals = bridge.modalInternals || {};
+  const { createEl, mountDialogShell, closeDialog, DIALOG_ID } = modal;
+
+  modal.showStartDialog = async function showStartDialog(settings, currentProject) {
+    const projectRoot = modal.normalizeVaultPath(settings.defaultProjectRoot || "Projects") || "Projects";
+    const state = { project: currentProject || "", projects: [] };
+    const { overlay, panel } = mountDialogShell(DIALOG_ID, true);
+    const form = createEl("form");
+    const status = createEl("div", { className: "obsidian-chatgpt-bridge-modal-status" });
+    const actions = createEl("div", { className: "obsidian-chatgpt-bridge-modal-actions" });
+    const select = createEl("select", { className: "obsidian-chatgpt-bridge-select", attrs: { "aria-label": "Default project" } });
+    const createInput = createEl("input", { attrs: { type: "text", placeholder: "ProjectName", "aria-label": "New project name" } });
+    const createButton = createEl("button", { text: "Create Project", className: "obsidian-chatgpt-bridge-picker-button", attrs: { type: "button" } });
+    const setStatus = (msg, tone = "") => { status.textContent = msg || ""; tone ? status.setAttribute("data-tone", tone) : status.removeAttribute("data-tone"); };
+    const render = projects => {
+      state.projects = modal.sortNames(new Set(projects.filter(Boolean))); select.innerHTML = "";
+      select.appendChild(createEl("option", { text: "No default project", attrs: { value: "" } }));
+      state.projects.forEach(project => select.appendChild(createEl("option", { text: project, attrs: { value: project } })));
+      if (!state.project || !state.projects.includes(state.project)) state.project = "";
+      select.value = state.project;
+    };
+    const loadProjectList = async () => {
+      setStatus(`Loading projects from ${projectRoot}/...`);
+      const result = await modal.listObsidianDirectory(projectRoot);
+      if (!result.ok) return render([]), setStatus(`No project root found at ${projectRoot}/. Create a new project or continue without a default project.`, "warn");
+      render(result.items.filter(item => item.isDirectory).map(item => item.name));
+      setStatus(state.projects.length ? "" : `No project folders found under ${projectRoot}/. Create a new project or continue without a default project.`);
+      if (!state.project && state.projects.length === 1) state.project = select.value = state.projects[0];
+    };
+
+    panel.append(createEl("h2", { text: "Start Obsidian Bridge" }), createEl("p", { className: "obsidian-chatgpt-bridge-modal-copy", text: "Click Start to continue immediately, or optionally set a default project for this session." }));
+    form.append(createEl("label", { text: "Default project for this session", className: "obsidian-chatgpt-bridge-field-label" }), select);
+    const createSection = createEl("section", { className: "obsidian-chatgpt-bridge-file-section" });
+    const row = createEl("div", { className: "obsidian-chatgpt-bridge-inline-actions" });
+    row.append(createInput, createButton);
+    createSection.append(createEl("div", { className: "obsidian-chatgpt-bridge-file-heading", text: "Create New Project" }), createEl("p", { className: "obsidian-chatgpt-bridge-modal-copy", text: `Creates ${projectRoot}/<Project Name>/Hub.md and selects it as the default project.` }), row);
+    const cancel = createEl("button", { text: "Cancel", attrs: { type: "button" } });
+    const start = createEl("button", { text: "Start", attrs: { type: "submit" } }); start.className = "obsidian-chatgpt-bridge-primary"; actions.append(cancel, start);
+    form.append(createSection, status, actions); panel.append(form);
+
+    select.addEventListener("change", () => { state.project = select.value.trim(); setStatus(""); });
+    createButton.addEventListener("click", async () => {
+      const projectName = String(createInput.value || "").trim();
+      if (!projectName) return setStatus("Enter a project name first.", "warn"), createInput.focus();
+      setStatus(`Creating ${projectRoot}/${projectName}/...`); createButton.disabled = true;
+      const result = await modal.createObsidianProject(projectRoot, projectName); createButton.disabled = false;
+      if (!result.ok) return setStatus(`Could not create project: ${result.error || "unknown error"}`, "warn");
+      createInput.value = ""; state.project = result.projectName; await loadProjectList(); select.value = result.projectName;
+      setStatus(`Created ${result.projectPath}/ and selected it as the default project.`);
+    });
+    cancel.addEventListener("click", () => closeDialog());
+    overlay.addEventListener("click", event => { if (event.target === overlay) closeDialog(); });
+    window.addEventListener("keydown", function onEscape(event) { if (event.key === "Escape") { window.removeEventListener("keydown", onEscape); closeDialog(); } }, { once: true });
+
+    const dialog = new Promise(resolve => form.addEventListener("submit", event => {
+      event.preventDefault(); closeDialog(); resolve({ project: state.project, projectRoot });
+    }));
+    if (!String(settings.apiKey || "").trim()) setStatus("Set the Obsidian Local REST API key in the extension popup to enable project discovery.", "warn");
+    else await loadProjectList();
+    select.focus(); return dialog;
+  };
+})(window);
