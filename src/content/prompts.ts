@@ -71,6 +71,8 @@ export function setupPrompt(options: PromptOptions = {}) {
     "",
     "Everything after that first line is the Markdown content to write.",
     "",
+    "You do not need to include a title in the note, since obsidian automatically displays a title based on the file name.",
+    "",
     `Common project files: ${DEFAULT_FILES.join(", ")}.`,
     "",
     "Rules:",

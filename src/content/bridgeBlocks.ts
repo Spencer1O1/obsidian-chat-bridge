@@ -1,6 +1,5 @@
 import { BAR_CLASS, CUSTOM_PREFIX_RE, PROCESSED_ATTR } from "../shared/constants";
 
-const globalFingerprints = new Set<string>();
 const fingerprint = (parts: unknown[]) => parts.map(part => String(part || "")).join("\u241F");
 const getCodeText = (pre: Element) => {
   const clone = pre.cloneNode(true) as HTMLElement;
@@ -22,7 +21,15 @@ const findCodeBlockContainer = (pre: Element) => {
   }
   return container;
 };
-const hasExistingBarAnywhere = (fp: string) => !!document.querySelector(`.${BAR_CLASS}[data-obsidian-fingerprint="${CSS.escape(fp)}"]`) || globalFingerprints.has(fp);
+const findBarForFingerprint = (fp: string) => document.querySelector<HTMLElement>(`.${BAR_CLASS}[data-obsidian-fingerprint="${CSS.escape(fp)}"]`);
+const removeBarsAfter = (container: Element) => {
+  let next = container.nextElementSibling;
+  while (next?.classList?.contains(BAR_CLASS)) {
+    const remove = next;
+    next = next.nextElementSibling;
+    remove.remove();
+  }
+};
 const removeDuplicateBars = () => {
   const seen = new Set<string>();
   Array.from(document.querySelectorAll<HTMLElement>(`.${BAR_CLASS}[data-obsidian-fingerprint]`)).forEach(bar => {
@@ -64,25 +71,31 @@ const parseCustomObsidianBlock = (pre: Element) => {
   const parsed = parseTarget(marker[2]);
   return parsed ? { action: marker[1].toLowerCase(), vault: parsed.vault, filepath: parsed.filepath, content: text.trim() } : null;
 };
-const insertBarAfterCodeBlock = (pre: Element, bar: HTMLElement) => {
-  const container = findCodeBlockContainer(pre);
-  let next = container.nextElementSibling;
-  while (next?.classList?.contains(BAR_CLASS)) {
-    const remove = next;
-    next = next.nextElementSibling;
-    remove.remove();
-  }
+const insertBarAfterCodeBlock = (container: Element, bar: HTMLElement) => {
+  removeBarsAfter(container);
   container.insertAdjacentElement("afterend", bar);
 };
 
 export function processCustomObsidianBlocks(root: ParentNode = document) {
   getTopLevelPres(root).forEach(node => {
     const custom = parseCustomObsidianBlock(node);
-    if (!custom) return;
+    if (!custom) {
+      node.removeAttribute(PROCESSED_ATTR);
+      return;
+    }
+
     const fp = fingerprint(["custom", custom.action, custom.vault, custom.filepath, custom.content]);
-    if (hasExistingBarAnywhere(fp)) return node.setAttribute(PROCESSED_ATTR, "custom");
+    const container = findCodeBlockContainer(node);
+    const adjacentBar = container.nextElementSibling;
+    if (adjacentBar?.classList.contains(BAR_CLASS) && adjacentBar instanceof HTMLElement && adjacentBar.dataset.obsidianFingerprint === fp) {
+      node.setAttribute(PROCESSED_ATTR, "custom");
+      return;
+    }
+
+    const orphan = findBarForFingerprint(fp);
+    if (orphan && orphan.previousElementSibling !== container && !container.contains(orphan)) orphan.remove();
+
     node.setAttribute(PROCESSED_ATTR, "custom");
-    globalFingerprints.add(fp);
     const bar = document.createElement("div");
     bar.className = BAR_CLASS;
     bar.dataset.obsidianFingerprint = fp;
@@ -105,7 +118,7 @@ export function processCustomObsidianBlocks(root: ParentNode = document) {
       button,
       Object.assign(document.createElement("span"), { className: "obsidian-chat-bridge-meta", textContent: `${custom.vault}/${custom.filepath} · ${custom.action}` })
     );
-    insertBarAfterCodeBlock(node, bar);
+    insertBarAfterCodeBlock(container, bar);
   });
 }
 

@@ -38,14 +38,6 @@
   box-sizing: border-box;
 }
 
-#obsidian-chat-bridge-floating[data-inline-host] {
-  width: auto;
-  margin: 0;
-  padding: 0;
-  align-self: center;
-  margin-left: auto;
-}
-
 #obsidian-chat-bridge-start-bridge,
 #obsidian-chat-bridge-load-context {
   border: 1px solid currentColor;

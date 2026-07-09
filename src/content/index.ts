@@ -7,11 +7,8 @@ function findControlsHost() {
   const composer = findComposer();
   if (!composer) return null;
   const form = composer.closest("form");
-  const sendButton = form?.querySelector<HTMLButtonElement>("button[data-testid='send-button'], button[aria-label='Send prompt'], button[aria-label*='Send']");
-  const actionRow = sendButton?.parentElement;
-  if (actionRow?.parentElement) return { parent: actionRow.parentElement, anchor: actionRow, inline: true };
-  if (form?.parentElement) return { parent: form.parentElement, anchor: form, inline: false };
-  return null;
+  if (!form?.parentElement) return null;
+  return { parent: form.parentElement, anchor: form };
 }
 
 function ensureFloatingButtons() {
@@ -19,8 +16,9 @@ function ensureFloatingButtons() {
   if (!host) return;
   let container = document.getElementById(FLOATING_CONTAINER_ID) as HTMLDivElement | null;
   if (!container) { container = document.createElement("div"); container.id = FLOATING_CONTAINER_ID; }
-  container.toggleAttribute("data-inline-host", Boolean(host.inline));
-  if (container.parentElement !== host.parent || container.nextElementSibling !== host.anchor) host.parent.insertBefore(container, host.anchor);
+  if (container.parentElement !== host.parent || container.nextElementSibling !== host.anchor) {
+    host.parent.insertBefore(container, host.anchor);
+  }
 
   const shouldShowStart = isNewConversationScreen();
   let startButton = document.getElementById(START_BUTTON_ID) as HTMLButtonElement | null;
