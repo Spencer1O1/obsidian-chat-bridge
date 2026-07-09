@@ -14,7 +14,7 @@ export async function startBridge() {
   const selection = await showStartDialog(settings, activeProjectContext?.projectName || "");
   activeProjectContext = selection.project ? { projectName: selection.project, projectRoot: selection.projectRoot } : null;
   const prompt = setupPrompt({ vaultName: settings.vaultName, projectName: selection.project || "", projectRoot: selection.projectRoot });
-  if (!chatUi.insertAndSend(prompt)) { await chatUi.copyText(prompt); alert("Could not find the chat composer. Setup prompt copied to clipboard."); }
+  if (!chatUi.insertAndSend(prompt)) alert("Could not find the chat composer. Open a ChatGPT conversation and try again.");
 }
 
 export async function loadObsidianContext() {

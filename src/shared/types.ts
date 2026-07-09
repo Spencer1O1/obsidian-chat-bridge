@@ -17,5 +17,4 @@ export type RuntimeMessage =
   | { type: "FETCH_OBSIDIAN_FILE"; filepath: string }
   | { type: "LIST_OBSIDIAN_DIRECTORY"; dirpath: string }
   | { type: "CREATE_OBSIDIAN_PROJECT"; projectRoot: string; projectName: string }
-  | { type: "WRITE_OBSIDIAN_FILE"; filepath: string; action: string; content: string }
-  | { type: "OPEN_OBSIDIAN_URI"; uri: string };
+  | { type: "WRITE_OBSIDIAN_FILE"; filepath: string; action: string; content: string };

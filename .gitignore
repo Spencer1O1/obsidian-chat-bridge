@@ -1,4 +1,5 @@
 dist/
 node_modules/
 *.code-workspace
-*.env.local
+.env
+.env.*

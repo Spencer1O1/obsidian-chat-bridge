@@ -17,7 +17,7 @@ const manifest = {
   name: "Obsidian Chat Bridge",
   version: "1.6.0",
   description: "Adds bridge controls to chat UIs, starts bridge setup prompts, and loads Obsidian context through Local REST API.",
-  permissions: ["clipboardRead", "clipboardWrite", "tabs", "storage"],
+  permissions: ["storage"],
   host_permissions: ["https://chatgpt.com/*", "https://chat.openai.com/*", "https://127.0.0.1:27124/*"],
   background: { service_worker: "background.js", type: "module" },
   content_scripts: [{

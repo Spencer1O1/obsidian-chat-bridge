@@ -1,20 +1,4 @@
-export async function copyText(text: string) {
-  if (!text) return false;
-  try { await navigator.clipboard.writeText(text); return true; }
-  catch (err) { console.warn("Could not write clipboard:", err); return false; }
-}
-
-export function openObsidian(uri: string) {
-  chrome.runtime.sendMessage({ type: "OPEN_OBSIDIAN_URI", uri }, response => {
-    if (!response?.ok) {
-      console.warn("Obsidian Chat Bridge failed:", response && response.error);
-      window.location.href = uri;
-    }
-  });
-}
-
-export function findComposer() {
-  return document.querySelector<HTMLElement>("#prompt-textarea[contenteditable='true']")
+export function findComposer() {  return document.querySelector<HTMLElement>("#prompt-textarea[contenteditable='true']")
     || document.querySelector<HTMLElement>("[contenteditable='true'][data-virtualkeyboard]")
     || document.querySelector<HTMLTextAreaElement>("main form textarea")
     || document.querySelector<HTMLElement>("textarea");

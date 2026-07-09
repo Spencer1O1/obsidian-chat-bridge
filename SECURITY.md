@@ -7,8 +7,8 @@
 The extension currently:
 
 - reads note contents from the local Obsidian Local REST API endpoint
+- writes note updates through the local Obsidian Local REST API endpoint when the user clicks a bridge-block button
 - stores the Local REST API key and extension settings in browser local storage
-- opens `obsidian://` URIs to route write actions into Obsidian
 
 ## Reporting a vulnerability
 
@@ -21,7 +21,7 @@ Until a dedicated security contact exists for this project, open an issue only i
 - The extension is designed for `https://127.0.0.1:27124`
 - Local HTTP fallback is intentionally not supported
 - The Local REST API certificate may need to be trusted on the local machine
-- The extension targets only `obsidian://` URIs for Obsidian write routing
+- Note writes are user-triggered through bridge blocks and Local REST API only
 - Obsidian remains the source of truth; the extension does not sync vault data to a remote server
 
 ## User caution
@@ -29,3 +29,4 @@ Until a dedicated security contact exists for this project, open an issue only i
 - Treat AI-generated vault updates as reviewable output, not unquestioned truth
 - Be careful when loading sensitive notes into any AI chat interface
 - Confirm your browser extension settings and local Obsidian plugin settings before use
+- Rotate your Local REST API key if it was ever committed to version control

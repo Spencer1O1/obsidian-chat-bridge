@@ -1,7 +1,7 @@
 import { FLOATING_CONTAINER_ID, LOAD_BUTTON_ID, START_BUTTON_ID } from "../shared/constants";
 import { isNewConversationScreen, findComposer } from "./chatUi";
 import { loadObsidianContext, startBridge } from "./modal/index";
-import { processAnchors, processCodeBlocks, processCustomObsidianBlocks, processPlainText, removeDuplicateBars } from "./bridgeBlocks";
+import { processCustomObsidianBlocks, removeDuplicateBars } from "./bridgeBlocks";
 
 function findControlsHost() {
   const composer = findComposer();
@@ -37,7 +37,7 @@ function ensureFloatingButtons() {
   } else { loadButton?.remove(); }
 }
 
-function scan(root: ParentNode = document) { ensureFloatingButtons(); processAnchors(root); processCustomObsidianBlocks(root); processCodeBlocks(root); processPlainText(root); removeDuplicateBars(); }
+function scan(root: ParentNode = document) { ensureFloatingButtons(); processCustomObsidianBlocks(root); removeDuplicateBars(); }
 let scheduled = false;
 function scheduleScan() { if (scheduled) return; scheduled = true; requestAnimationFrame(() => { scheduled = false; scan(); }); }
 

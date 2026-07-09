@@ -1,5 +1,8 @@
 {
   "name": "obsidian-chat-bridge",
+  "version": "1.6.0",
+  "description": "Browser extension that connects AI chat interfaces to an Obsidian vault through Local REST API.",
+  "license": "AGPL-3.0-or-later",
   "private": true,
   "scripts": {
     "build": "node ./scripts/build.mjs",

@@ -1,20 +1,9 @@
-.obsidian-chat-bridge-link {
-  text-decoration: underline !important;
-  text-decoration-style: dotted !important;
-}
-
 .obsidian-chat-bridge-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin: 8px 0 4px 0;
-}
-
-.obsidian-chat-bridge-inline-bar {
-  display: inline-flex;
-  gap: 6px;
-  margin-left: 6px;
 }
 
 .obsidian-chat-bridge-button {

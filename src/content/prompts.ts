@@ -55,7 +55,6 @@ export function setupPrompt(options: PromptOptions = {}) {
     "  - obsidian_append — add content to the END of the file only.",
     "  - obsidian_prepend — add content to the START of the file only.",
     "- Before overwriting an existing file to make changes within it, use the current Obsidian context as the source of truth and preserve all existing content by default. Merge requested change into the appropriate location and verify that no unrelated content was lost.",
-    "- Do not output raw obsidian:// URIs, clipboard instructions, or manual copy/paste instructions for vault writes.",
     "- Do not explain the workflow unless I ask."
   ].join("\n");
 
