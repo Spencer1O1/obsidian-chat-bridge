@@ -1,6 +1,6 @@
 (function initObsidianBridgeClipboard(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
-  const ui = bridge.chatgptUiInternals = bridge.chatgptUiInternals || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
+  const ui = bridge.uiInternals = bridge.uiInternals || {};
 
   ui.copyText = async text => {
     if (!text) return false;
@@ -11,7 +11,7 @@
   ui.openObsidian = uri => {
     chrome.runtime.sendMessage({ type: "OPEN_OBSIDIAN_URI", uri }, response => {
       if (!response?.ok) {
-        console.warn("Obsidian ChatGPT Bridge failed:", response && response.error);
+        console.warn("Obsidian Chat Bridge failed:", response && response.error);
         window.location.href = uri;
       }
     });

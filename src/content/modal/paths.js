@@ -1,5 +1,5 @@
 (function initObsidianBridgeModalPaths(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const modal = bridge.modalInternals = bridge.modalInternals || {};
 
   function normalizeVaultPath(path) {

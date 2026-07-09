@@ -1,5 +1,5 @@
 (function initObsidianBridgeContent(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const {
     FLOATING_CONTAINER_ID,
     START_BUTTON_ID,
@@ -7,7 +7,7 @@
   } = bridge.constants;
 
   function findControlsHost() {
-    const composer = bridge.chatgptUi.findComposer();
+    const composer = bridge.chatUi.findComposer();
     if (!composer) return null;
     const form = composer.closest("form");
     const sendButton = form?.querySelector("button[data-testid='send-button'], button[aria-label='Send prompt'], button[aria-label*='Send']");
@@ -43,7 +43,7 @@
       host.parent.insertBefore(container, host.anchor);
     }
 
-    const shouldShowStart = bridge.chatgptUi.isNewChatScreen();
+    const shouldShowStart = bridge.chatUi.isNewConversationScreen();
 
     let startButton = document.getElementById(START_BUTTON_ID);
     if (shouldShowStart) {
@@ -52,8 +52,8 @@
         startButton = document.createElement("button");
         startButton.id = START_BUTTON_ID;
         startButton.type = "button";
-        startButton.textContent = "Start Obsidian Bridge";
-        startButton.title = "Send the bridge setup prompt to ChatGPT.";
+        startButton.textContent = "Start Obsidian Chat Bridge";
+        startButton.title = "Send the bridge setup prompt to the current chat.";
         startButton.addEventListener("click", bridge.modal.startBridge);
       }
       if (startButton.parentElement !== container) container.appendChild(startButton);
@@ -68,7 +68,7 @@
         loadButton.id = LOAD_BUTTON_ID;
         loadButton.type = "button";
         loadButton.textContent = "Load Obsidian Context";
-        loadButton.title = "Load current Obsidian files through Local REST API and send them to ChatGPT as context.";
+        loadButton.title = "Load current Obsidian files through Local REST API and send them to the current chat as context.";
         loadButton.addEventListener("click", bridge.modal.loadObsidianContext);
       }
       if (loadButton.parentElement !== container) container.appendChild(loadButton);

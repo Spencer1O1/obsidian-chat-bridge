@@ -20,7 +20,7 @@ function isProjectPath(path: string, projectFolder: string) {
 
 export function setupPrompt(options: PromptOptions = {}) {
   const { vaultName, projectName, projectFolder } = normalizeSettings(options);
-  const header = projectName ? `Obsidian Bridge is active for project ${projectName}.` : "Obsidian Bridge is active.";
+  const header = projectName ? `Obsidian Chat Bridge is active for project ${projectName}.` : "Obsidian Chat Bridge is active.";
   const folderLine = projectName ? `Default project folder: ${projectFolder}/` : "Default project folder: none for this session";
   const examples = projectName ? `${vaultName}/${projectFolder}/<Target File>.md` : `${vaultName}/<Vault Relative Path>.md`;
   const defaultRule = projectName ? `- Default to writing inside ${projectFolder}/ for project work.` : "- There is no default project folder for this session, so use explicit vault-relative target paths by default.";

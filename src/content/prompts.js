@@ -1,5 +1,5 @@
 (function initObsidianBridgePrompts(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const { DEFAULT_FILES } = bridge.constants;
 
   function normalizeSettings(options = {}) {

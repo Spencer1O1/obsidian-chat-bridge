@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Obsidian ChatGPT Bridge",
+  "name": "Obsidian Chat Bridge",
   "version": "1.6.0",
-  "description": "Adds Obsidian Bridge buttons to ChatGPT, starts bridge setup prompts, and loads Obsidian context through Local REST API.",
+  "description": "Adds bridge controls to chat UIs, starts bridge setup prompts, and loads Obsidian context through Local REST API.",
   "permissions": [
     "clipboardRead",
     "clipboardWrite",
@@ -27,11 +27,11 @@
       "js": [
         "src/shared/constants.js",
         "src/content/prompts.js",
-        "src/content/chatgptUi/clipboard.js",
-        "src/content/chatgptUi/composer.js",
-        "src/content/chatgptUi/send.js",
-        "src/content/chatgptUi/screen.js",
-        "src/content/chatgptUi.js",
+        "src/content/chatUi/clipboard.js",
+        "src/content/chatUi/composer.js",
+        "src/content/chatUi/send.js",
+        "src/content/chatUi/screen.js",
+        "src/content/chatUi.js",
         "src/content/bridgeBlocks/dom.js",
         "src/content/bridgeBlocks/parse.js",
         "src/content/bridgeBlocks/buttons.js",
@@ -57,7 +57,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "styles.css"
+        "styles.css",
+        "res/logo.png"
       ],
       "matches": [
         "https://chatgpt.com/*",
@@ -65,8 +66,20 @@
       ]
     }
   ],
+  "icons": {
+    "16": "res/logo.png",
+    "32": "res/logo.png",
+    "48": "res/logo.png",
+    "128": "res/logo.png"
+  },
   "action": {
-    "default_title": "Obsidian ChatGPT Bridge",
+    "default_title": "Obsidian Chat Bridge",
+    "default_icon": {
+      "16": "res/logo.png",
+      "32": "res/logo.png",
+      "48": "res/logo.png",
+      "128": "res/logo.png"
+    },
     "default_popup": "src/popup/popup.html"
   }
 }

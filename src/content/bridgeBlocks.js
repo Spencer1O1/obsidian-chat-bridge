@@ -1,5 +1,5 @@
 (function initObsidianBridgeBlocks(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const blocks = bridge.bridgeBlocksInternals = bridge.bridgeBlocksInternals || {};
 
   bridge.bridgeBlocks = {

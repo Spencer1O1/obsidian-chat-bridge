@@ -7,7 +7,7 @@ export async function copyText(text: string) {
 export function openObsidian(uri: string) {
   chrome.runtime.sendMessage({ type: "OPEN_OBSIDIAN_URI", uri }, response => {
     if (!response?.ok) {
-      console.warn("Obsidian ChatGPT Bridge failed:", response && response.error);
+      console.warn("Obsidian Chat Bridge failed:", response && response.error);
       window.location.href = uri;
     }
   });
@@ -49,7 +49,7 @@ export function insertAndSend(prompt: string) {
   return true;
 }
 
-export function isNewChatScreen() {
+export function isNewConversationScreen() {
   if (!findComposer()) return false;
   if (['[data-message-author-role="user"]','[data-message-author-role="assistant"]','[data-testid^="conversation-turn"]','article[data-testid^="conversation-turn"]'].some(selector => document.querySelector(selector))) return false;
   return !/\/c\//.test(location.pathname);

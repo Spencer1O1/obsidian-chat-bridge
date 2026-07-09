@@ -1,5 +1,5 @@
 (function initObsidianBridgeModal(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const modal = bridge.modalInternals = bridge.modalInternals || {};
   const state = bridge.modalState = bridge.modalState || { activeProjectContext: null };
 
@@ -14,9 +14,9 @@
       projectName: selection.project || "",
       projectRoot: selection.projectRoot
     });
-    if (!bridge.chatgptUi.insertAndSend(prompt)) {
-      await bridge.chatgptUi.copyText(prompt);
-      alert("Could not find the ChatGPT composer. Setup prompt copied to clipboard.");
+    if (!bridge.chatUi.insertAndSend(prompt)) {
+      await bridge.chatUi.copyText(prompt);
+      alert("Could not find the chat composer. Setup prompt copied to clipboard.");
     }
   }
 

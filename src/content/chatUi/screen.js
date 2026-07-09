@@ -1,6 +1,6 @@
 (function initObsidianBridgeScreen(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
-  const ui = bridge.chatgptUiInternals = bridge.chatgptUiInternals || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
+  const ui = bridge.uiInternals = bridge.uiInternals || {};
 
   function hasConversationMessages() {
     return [
@@ -11,7 +11,7 @@
     ].some(selector => document.querySelector(selector));
   }
 
-  ui.isNewChatScreen = () => {
+  ui.isNewConversationScreen = () => {
     if (!ui.findComposer()) return false;
     if (hasConversationMessages()) return false;
     if (/\/c\//.test(location.pathname)) return false;

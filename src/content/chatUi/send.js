@@ -1,6 +1,6 @@
 (function initObsidianBridgeSend(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
-  const ui = bridge.chatgptUiInternals = bridge.chatgptUiInternals || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
+  const ui = bridge.uiInternals = bridge.uiInternals || {};
 
   ui.findSendButton = () => {
     const candidates = [...document.querySelectorAll("button")].filter(btn => !btn.disabled);

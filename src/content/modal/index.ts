@@ -1,5 +1,5 @@
 import { setupPrompt } from "../prompts";
-import * as chatgptUi from "../chatgptUi";
+import * as chatUi from "../chatUi";
 import { ensureSetupReady } from "./setup";
 import { getSettings } from "./runtime";
 import { showStartDialog } from "./startDialog";
@@ -14,7 +14,7 @@ export async function startBridge() {
   const selection = await showStartDialog(settings, activeProjectContext?.projectName || "");
   activeProjectContext = selection.project ? { projectName: selection.project, projectRoot: selection.projectRoot } : null;
   const prompt = setupPrompt({ vaultName: settings.vaultName, projectName: selection.project || "", projectRoot: selection.projectRoot });
-  if (!chatgptUi.insertAndSend(prompt)) { await chatgptUi.copyText(prompt); alert("Could not find the ChatGPT composer. Setup prompt copied to clipboard."); }
+  if (!chatUi.insertAndSend(prompt)) { await chatUi.copyText(prompt); alert("Could not find the chat composer. Setup prompt copied to clipboard."); }
 }
 
 export async function loadObsidianContext() {

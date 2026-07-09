@@ -1,7 +1,7 @@
 import { contextPrompt } from "../prompts";
 import type { ActiveProjectContext, BridgeSettings } from "../../shared/types";
 import { showFileExplorerDialog, loadFiles } from "./explorer";
-import * as chatgptUi from "../chatgptUi";
+import * as chatUi from "../chatUi";
 
 export async function loadSelectionIntoPrompt(settings: BridgeSettings, activeProjectContext: ActiveProjectContext) {
   const selectedPaths = await showFileExplorerDialog({
@@ -18,5 +18,5 @@ export async function loadSelectionIntoPrompt(settings: BridgeSettings, activePr
   let prompt = `${contextPrompt({ vaultName: settings.vaultName, projectName: activeProjectContext?.projectName || "", projectRoot: activeProjectContext?.projectRoot || settings.defaultProjectRoot, selectedPaths })}\n\n`;
   if (sections.length) prompt += sections.join("\n\n") + "\n";
   if (missing.length) prompt += `\n--- Files not loaded ---\n${missing.map(item => `- ${item}`).join("\n")}\n`;
-  if (!chatgptUi.insertAndSend(prompt)) { await chatgptUi.copyText(prompt); alert("Could not find the ChatGPT composer. Loaded context copied to clipboard."); }
+  if (!chatUi.insertAndSend(prompt)) { await chatUi.copyText(prompt); alert("Could not find the chat composer. Loaded context copied to clipboard."); }
 }

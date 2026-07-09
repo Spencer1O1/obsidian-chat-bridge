@@ -27,9 +27,9 @@ export function mountDialogShell(dialogId: string, replaceAll = false) {
   const host = createEl("div", { attrs: { id: dialogId } });
   const shadowRoot = host.attachShadow({ mode: "open" });
   const stylesheet = createEl("link", { attrs: { rel: "stylesheet", href: chrome.runtime.getURL("styles.css") } });
-  stylesheet.addEventListener("error", event => console.warn("Obsidian ChatGPT Bridge could not load modal stylesheet.", event));
-  const overlay = createEl("div", { className: "obsidian-chatgpt-bridge-dialog", attrs: { role: "dialog", "aria-modal": "true" } });
-  const panel = createEl("div", { className: "obsidian-chatgpt-bridge-modal" });
+  stylesheet.addEventListener("error", event => console.warn("Obsidian Chat Bridge could not load modal stylesheet.", event));
+  const overlay = createEl("div", { className: "obsidian-chat-bridge-dialog", attrs: { role: "dialog", "aria-modal": "true" } });
+  const panel = createEl("div", { className: "obsidian-chat-bridge-modal" });
   overlay.appendChild(panel);
   shadowRoot.append(stylesheet, overlay);
   document.body.appendChild(host);

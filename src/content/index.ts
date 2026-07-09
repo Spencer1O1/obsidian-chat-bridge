@@ -1,5 +1,5 @@
 import { FLOATING_CONTAINER_ID, LOAD_BUTTON_ID, START_BUTTON_ID } from "../shared/constants";
-import { isNewChatScreen, findComposer } from "./chatgptUi";
+import { isNewConversationScreen, findComposer } from "./chatUi";
 import { loadObsidianContext, startBridge } from "./modal/index";
 import { processAnchors, processCodeBlocks, processCustomObsidianBlocks, processPlainText, removeDuplicateBars } from "./bridgeBlocks";
 
@@ -22,17 +22,17 @@ function ensureFloatingButtons() {
   container.toggleAttribute("data-inline-host", Boolean(host.inline));
   if (container.parentElement !== host.parent || container.nextElementSibling !== host.anchor) host.parent.insertBefore(container, host.anchor);
 
-  const shouldShowStart = isNewChatScreen();
+  const shouldShowStart = isNewConversationScreen();
   let startButton = document.getElementById(START_BUTTON_ID) as HTMLButtonElement | null;
   if (shouldShowStart) {
     document.getElementById(LOAD_BUTTON_ID)?.remove();
-    if (!startButton) { startButton = document.createElement("button"); startButton.id = START_BUTTON_ID; startButton.type = "button"; startButton.textContent = "Start Obsidian Bridge"; startButton.title = "Send the bridge setup prompt to ChatGPT."; startButton.addEventListener("click", startBridge); }
+    if (!startButton) { startButton = document.createElement("button"); startButton.id = START_BUTTON_ID; startButton.type = "button"; startButton.textContent = "Start Obsidian Chat Bridge"; startButton.title = "Send the bridge setup prompt to the current chat."; startButton.addEventListener("click", startBridge); }
     if (startButton.parentElement !== container) container.appendChild(startButton);
   } else { startButton?.remove(); }
 
   let loadButton = document.getElementById(LOAD_BUTTON_ID) as HTMLButtonElement | null;
   if (!shouldShowStart) {
-    if (!loadButton) { loadButton = document.createElement("button"); loadButton.id = LOAD_BUTTON_ID; loadButton.type = "button"; loadButton.textContent = "Load Obsidian Context"; loadButton.title = "Load current Obsidian files through Local REST API and send them to ChatGPT as context."; loadButton.addEventListener("click", loadObsidianContext); }
+    if (!loadButton) { loadButton = document.createElement("button"); loadButton.id = LOAD_BUTTON_ID; loadButton.type = "button"; loadButton.textContent = "Load Obsidian Context"; loadButton.title = "Load current Obsidian files through Local REST API and send them to the current chat as context."; loadButton.addEventListener("click", loadObsidianContext); }
     if (loadButton.parentElement !== container) container.appendChild(loadButton);
   } else { loadButton?.remove(); }
 }

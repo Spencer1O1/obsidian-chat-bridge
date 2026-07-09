@@ -1,5 +1,5 @@
 (function initObsidianBridgeBlocksProcessCustom(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const blocks = bridge.bridgeBlocksInternals = bridge.bridgeBlocksInternals || {};
   const { BAR_CLASS, PROCESSED_ATTR } = bridge.constants;
 
@@ -19,7 +19,7 @@
       bar.dataset.obsidianFingerprint = fp;
       bar.appendChild(blocks.makeBridgeBlockButton(custom));
       const meta = document.createElement("span");
-      meta.className = "obsidian-chatgpt-bridge-meta";
+      meta.className = "obsidian-chat-bridge-meta";
       meta.textContent = `${custom.vault}/${custom.filepath} · ${custom.action}`;
       bar.appendChild(meta);
       blocks.insertBarAfterCodeBlock(node, bar);

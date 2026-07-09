@@ -1,5 +1,5 @@
 (function initObsidianBridgeLoadContext(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const modal = bridge.modalInternals = bridge.modalInternals || {};
 
   modal.loadSelectionIntoPrompt = async function loadSelectionIntoPrompt(settings, activeProjectContext) {
@@ -33,9 +33,9 @@
     if (sections.length) prompt += sections.join("\n\n") + "\n";
     if (missing.length) prompt += `\n--- Files not loaded ---\n${missing.map(item => `- ${item}`).join("\n")}\n`;
 
-    if (!bridge.chatgptUi.insertAndSend(prompt)) {
-      await bridge.chatgptUi.copyText(prompt);
-      alert("Could not find the ChatGPT composer. Loaded context copied to clipboard.");
+    if (!bridge.chatUi.insertAndSend(prompt)) {
+      await bridge.chatUi.copyText(prompt);
+      alert("Could not find the chat composer. Loaded context copied to clipboard.");
     }
   };
 })(window);

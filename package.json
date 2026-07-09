@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-chatgpt-bridge",
+  "name": "obsidian-chat-bridge",
   "private": true,
   "scripts": {
     "build": "node ./scripts/build.mjs",

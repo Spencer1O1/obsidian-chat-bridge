@@ -1,5 +1,5 @@
 (function initObsidianBridgeStartDialog(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const modal = bridge.modalInternals = bridge.modalInternals || {};
   const { createEl, mountDialogShell, closeDialog, DIALOG_ID } = modal;
 
@@ -8,11 +8,11 @@
     const state = { project: currentProject || "", projects: [] };
     const { overlay, panel } = mountDialogShell(DIALOG_ID, true);
     const form = createEl("form");
-    const status = createEl("div", { className: "obsidian-chatgpt-bridge-modal-status" });
-    const actions = createEl("div", { className: "obsidian-chatgpt-bridge-modal-actions" });
-    const select = createEl("select", { className: "obsidian-chatgpt-bridge-select", attrs: { "aria-label": "Default project" } });
+    const status = createEl("div", { className: "obsidian-chat-bridge-modal-status" });
+    const actions = createEl("div", { className: "obsidian-chat-bridge-modal-actions" });
+    const select = createEl("select", { className: "obsidian-chat-bridge-select", attrs: { "aria-label": "Default project" } });
     const createInput = createEl("input", { attrs: { type: "text", placeholder: "ProjectName", "aria-label": "New project name" } });
-    const createButton = createEl("button", { text: "Create Project", className: "obsidian-chatgpt-bridge-picker-button", attrs: { type: "button" } });
+    const createButton = createEl("button", { text: "Create Project", className: "obsidian-chat-bridge-picker-button", attrs: { type: "button" } });
     const setStatus = (msg, tone = "") => { status.textContent = msg || ""; tone ? status.setAttribute("data-tone", tone) : status.removeAttribute("data-tone"); };
     const render = projects => {
       state.projects = modal.sortNames(new Set(projects.filter(Boolean))); select.innerHTML = "";
@@ -30,14 +30,14 @@
       if (!state.project && state.projects.length === 1) state.project = select.value = state.projects[0];
     };
 
-    panel.append(createEl("h2", { text: "Start Obsidian Bridge" }), createEl("p", { className: "obsidian-chatgpt-bridge-modal-copy", text: "Click Start to continue immediately, or optionally set a default project for this session." }));
-    form.append(createEl("label", { text: "Default project for this session", className: "obsidian-chatgpt-bridge-field-label" }), select);
-    const createSection = createEl("section", { className: "obsidian-chatgpt-bridge-file-section" });
-    const row = createEl("div", { className: "obsidian-chatgpt-bridge-inline-actions" });
+    panel.append(createEl("h2", { text: "Start Obsidian Chat Bridge" }), createEl("p", { className: "obsidian-chat-bridge-modal-copy", text: "Click Start to continue immediately, or optionally set a default project for this session." }));
+    form.append(createEl("label", { text: "Default project for this session", className: "obsidian-chat-bridge-field-label" }), select);
+    const createSection = createEl("section", { className: "obsidian-chat-bridge-file-section" });
+    const row = createEl("div", { className: "obsidian-chat-bridge-inline-actions" });
     row.append(createInput, createButton);
-    createSection.append(createEl("div", { className: "obsidian-chatgpt-bridge-file-heading", text: "Create New Project" }), createEl("p", { className: "obsidian-chatgpt-bridge-modal-copy", text: `Creates ${projectRoot}/<Project Name>/Hub.md and selects it as the default project.` }), row);
+    createSection.append(createEl("div", { className: "obsidian-chat-bridge-file-heading", text: "Create New Project" }), createEl("p", { className: "obsidian-chat-bridge-modal-copy", text: `Creates ${projectRoot}/<Project Name>/Hub.md and selects it as the default project.` }), row);
     const cancel = createEl("button", { text: "Cancel", attrs: { type: "button" } });
-    const start = createEl("button", { text: "Start", attrs: { type: "submit" } }); start.className = "obsidian-chatgpt-bridge-primary"; actions.append(cancel, start);
+    const start = createEl("button", { text: "Start", attrs: { type: "submit" } }); start.className = "obsidian-chat-bridge-primary"; actions.append(cancel, start);
     form.append(createSection, status, actions); panel.append(form);
 
     select.addEventListener("change", () => { state.project = select.value.trim(); setStatus(""); });

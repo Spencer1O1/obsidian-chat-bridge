@@ -1,5 +1,5 @@
 (function initObsidianBridgeModalDom(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const modal = bridge.modalInternals = bridge.modalInternals || {};
   const { DIALOG_ID } = bridge.constants;
   const EXPLORER_DIALOG_ID = `${DIALOG_ID}-explorer`;
@@ -25,7 +25,7 @@
       attrs: { rel: "stylesheet", href: chrome.runtime.getURL("styles.css") }
     });
     link.addEventListener("error", event => {
-      console.warn("Obsidian ChatGPT Bridge could not load modal stylesheet.", event);
+      console.warn("Obsidian Chat Bridge could not load modal stylesheet.", event);
     });
     return link;
   }
@@ -36,10 +36,10 @@
     const host = createEl("div", { attrs: { id: dialogId } });
     const shadowRoot = host.attachShadow({ mode: "open" });
     const overlay = createEl("div", {
-      className: "obsidian-chatgpt-bridge-dialog",
+      className: "obsidian-chat-bridge-dialog",
       attrs: { role: "dialog", "aria-modal": "true" }
     });
-    const panel = createEl("div", { className: "obsidian-chatgpt-bridge-modal" });
+    const panel = createEl("div", { className: "obsidian-chat-bridge-modal" });
     overlay.appendChild(panel);
     shadowRoot.append(buildModalStyle(), overlay);
     document.body.appendChild(host);

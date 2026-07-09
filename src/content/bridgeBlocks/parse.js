@@ -1,5 +1,5 @@
 (function initObsidianBridgeBlocksParse(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const blocks = bridge.bridgeBlocksInternals = bridge.bridgeBlocksInternals || {};
   const { CUSTOM_PREFIX_RE } = bridge.constants;
 

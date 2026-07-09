@@ -1,5 +1,5 @@
 (function initObsidianBridgeBlocksButtons(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const blocks = bridge.bridgeBlocksInternals = bridge.bridgeBlocksInternals || {};
 
   function flash(button, text) {
@@ -38,24 +38,24 @@
 
   function makeButton(uri, label = "Open in Obsidian", options = {}) {
     const button = document.createElement("button");
-    button.type = "button"; button.className = "obsidian-chatgpt-bridge-button"; button.textContent = label; button.title = uri;
+    button.type = "button"; button.className = "obsidian-chat-bridge-button"; button.textContent = label; button.title = uri;
     button.addEventListener("click", async event => {
       event.preventDefault(); event.stopPropagation();
       const copyText = options.copyText != null ? options.copyText : options.copySourceEl && uriUsesClipboard(uri) ? blocks.getCodeText(options.copySourceEl) : null;
-      if (copyText != null && !await bridge.chatgptUi.copyText(copyText)) return flash(button, "Clipboard blocked");
-      bridge.chatgptUi.openObsidian(uri);
+      if (copyText != null && !await bridge.chatUi.copyText(copyText)) return flash(button, "Clipboard blocked");
+      bridge.chatUi.openObsidian(uri);
     });
     return button;
   }
 
   function makeBridgeBlockButton(custom) {
     const button = document.createElement("button");
-    button.type = "button"; button.className = "obsidian-chatgpt-bridge-button"; button.textContent = labelForAction(custom.action); button.title = `${custom.vault}/${custom.filepath}`;
+    button.type = "button"; button.className = "obsidian-chat-bridge-button"; button.textContent = labelForAction(custom.action); button.title = `${custom.vault}/${custom.filepath}`;
     button.addEventListener("click", async event => {
       event.preventDefault(); event.stopPropagation();
-      if (!await bridge.chatgptUi.copyText(custom.content)) return flash(button, "Clipboard blocked");
+      if (!await bridge.chatUi.copyText(custom.content)) return flash(button, "Clipboard blocked");
       const result = await fetchObsidianFile(custom.filepath);
-      bridge.chatgptUi.openObsidian(blocks.buildAdvancedUri({ vault: custom.vault, filepath: custom.filepath, mode: resolveWriteMode(custom.action, result.ok) }));
+      bridge.chatUi.openObsidian(blocks.buildAdvancedUri({ vault: custom.vault, filepath: custom.filepath, mode: resolveWriteMode(custom.action, result.ok) }));
     });
     return button;
   }

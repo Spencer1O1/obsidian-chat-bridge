@@ -1,5 +1,5 @@
 (function initObsidianBridgeBlocksDom(global) {
-  const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
+  const bridge = global.ObsidianChatBridge = global.ObsidianChatBridge || {};
   const blocks = bridge.bridgeBlocksInternals = bridge.bridgeBlocksInternals || {};
   const { BAR_CLASS, OBSIDIAN_RE } = bridge.constants;
   blocks.GLOBAL_FPS = blocks.GLOBAL_FPS || new Set();
@@ -12,7 +12,7 @@
 
   function getCodeText(pre) {
     const clone = pre.cloneNode(true);
-    clone.querySelectorAll(`.${BAR_CLASS}, .obsidian-chatgpt-bridge-inline-bar, .obsidian-chatgpt-bridge-button`).forEach(node => node.remove());
+    clone.querySelectorAll(`.${BAR_CLASS}, .obsidian-chat-bridge-inline-bar, .obsidian-chat-bridge-button`).forEach(node => node.remove());
     return (clone.textContent || "").trim();
   }
 
