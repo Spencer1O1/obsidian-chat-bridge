@@ -1,6 +1,6 @@
 body {
   font: 14px system-ui, sans-serif;
-  min-width: 340px;
+  min-width: 380px;
   padding: 12px;
 }
 
@@ -12,6 +12,15 @@ code {
 
 li {
   margin: 6px 0;
+}
+
+ol {
+  padding-left: 20px;
+}
+
+h2 {
+  margin: 16px 0 8px;
+  font-size: 15px;
 }
 
 label {
@@ -35,4 +44,8 @@ button {
 .status {
   margin-top: 8px;
   opacity: 0.8;
+}
+
+a {
+  color: inherit;
 }

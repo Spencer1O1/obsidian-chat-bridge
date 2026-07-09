@@ -97,6 +97,39 @@ async function requestObsidian(path, { accept = "text/markdown", kind = "file" }
   return { ok: false, error: lastError };
 }
 
+async function writeObsidianFile(filepath, content, { contentType = "text/markdown" } = {}) {
+  const { apiBase, apiKey } = await getSettings();
+  if (!apiKey) return { ok: false, error: "Missing Obsidian Local REST API key." };
+
+  let lastError = "Unknown error";
+  const base = normalizeBase(apiBase) || DEFAULT_API_BASE;
+
+  for (const url of candidateVaultUrls(base, filepath, "file")) {
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": contentType
+        },
+        body: String(content || "")
+      });
+      if (response.ok) return { ok: true, base, url };
+      const text = await response.text();
+      lastError = `${response.status} ${response.statusText}${text ? ` - ${text.slice(0, 160)}` : ""}`;
+    } catch (err) {
+      const message = err && err.message ? err.message : String(err);
+      if (/Failed to fetch/i.test(message)) {
+        lastError = `${message}. ${NETWORK_ERROR_HELP} URL: ${url}`;
+      } else {
+        lastError = message;
+      }
+    }
+  }
+
+  return { ok: false, error: lastError };
+}
+
 export async function fetchObsidianFile(filepath) {
   const result = await requestObsidian(filepath, {
     accept: "text/markdown, text/plain;q=0.9, application/json;q=0.5, */*;q=0.1",
@@ -162,4 +195,24 @@ export async function listObsidianDirectory(dirpath) {
       error: `Could not parse directory listing: ${err && err.message ? err.message : String(err)}`
     };
   }
+}
+
+export async function createObsidianProject(projectRoot, projectName) {
+  const normalizedRoot = normalizeVaultPath(projectRoot || DEFAULT_PROJECT_ROOT) || DEFAULT_PROJECT_ROOT;
+  const cleanedName = String(projectName || "").trim().replace(/[\\/:*?"<>|]/g, "");
+  if (!cleanedName) {
+    return { ok: false, error: "Project name is required." };
+  }
+
+  const targetPath = `${normalizedRoot}/${cleanedName}/Hub.md`;
+  const content = `---\ntype: project\nstatus: active\n---\n\n# ${cleanedName}\n`;
+  const result = await writeObsidianFile(targetPath, content);
+  if (!result.ok) return result;
+
+  return {
+    ok: true,
+    projectName: cleanedName,
+    projectPath: `${normalizedRoot}/${cleanedName}`,
+    createdFile: targetPath
+  };
 }

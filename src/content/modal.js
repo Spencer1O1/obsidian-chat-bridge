@@ -2,6 +2,7 @@
   const bridge = global.ObsidianChatGPTBridge = global.ObsidianChatGPTBridge || {};
   const { DIALOG_ID } = bridge.constants;
   const EXPLORER_DIALOG_ID = `${DIALOG_ID}-explorer`;
+  let activeProjectContext = null;
 
   function getSettings() {
     return new Promise(resolve => chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, response => resolve(response || {})));
@@ -16,6 +17,21 @@
   function listObsidianDirectory(dirpath) {
     return new Promise(resolve => {
       chrome.runtime.sendMessage({ type: "LIST_OBSIDIAN_DIRECTORY", dirpath }, response => resolve(response || { ok: false, error: "No response" }));
+    });
+  }
+
+  function openExtensionPopup() {
+    return new Promise(resolve => {
+      chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_POPUP" }, response => resolve(response || { ok: false, error: "No response" }));
+    });
+  }
+
+  function createObsidianProject(projectRoot, projectName) {
+    return new Promise(resolve => {
+      chrome.runtime.sendMessage(
+        { type: "CREATE_OBSIDIAN_PROJECT", projectRoot, projectName },
+        response => resolve(response || { ok: false, error: "No response" })
+      );
     });
   }
 
@@ -72,59 +88,38 @@
     return el;
   }
 
-  async function buildModalStyle() {
-    try {
-      const response = await fetch(chrome.runtime.getURL("styles.css"));
-      if (response.ok) {
-        const css = await response.text();
-        const style = createEl("style");
-        style.textContent = css;
-        return style;
-      }
-    } catch {}
+  function getSetupRequirementsMessage(settings = {}) {
+    const missingVaultName = !String(settings.vaultName || "").trim();
+    const missingApiKey = !String(settings.apiKey || "").trim();
+    if (!missingVaultName && !missingApiKey) return "";
+    if (missingVaultName && missingApiKey) {
+      return "You need to set your vault name and API key in the Bridge popup.";
+    }
+    if (missingVaultName) {
+      return "You need to set your vault name in the Bridge popup.";
+    }
+    return "You need to set your API key in the Bridge popup.";
+  }
 
-    const fallback = createEl("style");
-    fallback.textContent = `
-      .obsidian-chatgpt-bridge-dialog { position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); }
-      .obsidian-chatgpt-bridge-modal { width: min(720px, calc(100vw - 32px)); max-height: min(85vh, 860px); overflow: auto; border: 1px solid rgba(255,255,255,0.14); border-radius: 18px; padding: 20px; background: Canvas; color: CanvasText; box-shadow: 0 24px 72px rgba(0,0,0,0.35); }
-      .obsidian-chatgpt-bridge-modal h2 { margin: 0 0 6px 0; font-size: 18px; }
-      .obsidian-chatgpt-bridge-modal-copy { margin: 2px 0 10px 0; font-size: 13px; line-height: 1.4; opacity: 0.75; }
-      .obsidian-chatgpt-bridge-field-label { display: block; margin-top: 12px; font-size: 13px; font-weight: 600; }
-      .obsidian-chatgpt-bridge-modal input:not([type="checkbox"]), .obsidian-chatgpt-bridge-select { width: 100%; box-sizing: border-box; margin-top: 6px; border: 1px solid rgba(127,127,127,0.45); border-radius: 12px; padding: 10px 12px; font: inherit; background: color-mix(in srgb, Canvas 92%, CanvasText 8%); color: inherit; }
-      .obsidian-chatgpt-bridge-select { cursor: pointer; appearance: none; padding-right: 42px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5.25L7 9.25L11 5.25' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 14px 14px; }
-      .obsidian-chatgpt-bridge-file-section { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(127,127,127,0.18); }
-      .obsidian-chatgpt-bridge-file-heading { margin-top: 2px; font-size: 13px; font-weight: 600; }
-      .obsidian-chatgpt-bridge-secondary-action { border: 0; padding: 0; font: inherit; font-size: 12px; cursor: pointer; background: transparent; color: inherit; opacity: 0.75; }
-      .obsidian-chatgpt-bridge-secondary-action:hover { opacity: 1; text-decoration: underline; }
-      .obsidian-chatgpt-bridge-empty-state { font-size: 12px; opacity: 0.72; padding: 4px 0; }
-      .obsidian-chatgpt-bridge-modal-status { min-height: 18px; margin-top: 8px; font-size: 12px; line-height: 1.4; opacity: 0.8; }
-      .obsidian-chatgpt-bridge-modal-status[data-tone="warn"] { color: #d97706; opacity: 1; }
-      .obsidian-chatgpt-bridge-selected-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-      .obsidian-chatgpt-bridge-selected-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid rgba(127,127,127,0.24); border-radius: 12px; }
-      .obsidian-chatgpt-bridge-selected-path { font-size: 12px; line-height: 1.35; word-break: break-word; }
-      .obsidian-chatgpt-bridge-picker-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-      .obsidian-chatgpt-bridge-picker-button { border: 1px solid rgba(127,127,127,0.35); border-radius: 999px; padding: 8px 12px; font: inherit; cursor: pointer; background: transparent; color: inherit; }
-      .obsidian-chatgpt-bridge-picker-button:disabled { opacity: 0.4; cursor: default; }
-      .obsidian-chatgpt-bridge-browser-toolbar { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(127,127,127,0.18); }
-      .obsidian-chatgpt-bridge-browser-toolbar button { border: 0; border-radius: 0; padding: 0; font: inherit; line-height: 1.2; cursor: pointer; background: transparent; color: inherit; opacity: 0.82; }
-      .obsidian-chatgpt-bridge-browser-toolbar button:disabled { opacity: 0.38; cursor: default; }
-      .obsidian-chatgpt-bridge-breadcrumb { font-size: 12px; line-height: 1.2; opacity: 0.8; word-break: break-word; }
-      .obsidian-chatgpt-bridge-browser-list { display: flex; flex-direction: column; gap: 0; margin-top: 4px; border-top: 1px solid rgba(127,127,127,0.18); border-bottom: 1px solid rgba(127,127,127,0.18); }
-      .obsidian-chatgpt-bridge-browser-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0; border-bottom: 1px solid rgba(127,127,127,0.12); }
-      .obsidian-chatgpt-bridge-browser-row:last-child { border-bottom: 0; }
-      .obsidian-chatgpt-bridge-browser-entry { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; border: 0; padding: 14px 0; font: inherit; background: transparent; color: inherit; cursor: pointer; text-align: left; }
-      .obsidian-chatgpt-bridge-browser-name { font-size: 14px; font-weight: 600; }
-      .obsidian-chatgpt-bridge-browser-kind { font-size: 12px; opacity: 0.7; }
-      .obsidian-chatgpt-bridge-browser-chevron { font-size: 14px; opacity: 0.65; }
-      .obsidian-chatgpt-bridge-browser-file { display: flex; align-items: center; gap: 10px; padding: 14px 0; border-bottom: 1px solid rgba(127,127,127,0.12); cursor: pointer; }
-      .obsidian-chatgpt-bridge-browser-file:last-child { border-bottom: 0; }
-      .obsidian-chatgpt-bridge-checkbox-input { width: 16px !important; height: 16px !important; flex: 0 0 16px; margin: 0; cursor: pointer; appearance: auto; }
-      .obsidian-chatgpt-bridge-checkbox-label { font-size: 13px; font-weight: 600; }
-      .obsidian-chatgpt-bridge-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
-      .obsidian-chatgpt-bridge-modal-actions button { border: 1px solid currentColor; border-radius: 999px; padding: 8px 14px; font: inherit; cursor: pointer; background: transparent; color: inherit; }
-      .obsidian-chatgpt-bridge-modal-actions .obsidian-chatgpt-bridge-primary { background: color-mix(in srgb, CanvasText 12%, Canvas 88%); }
-    `;
-    return fallback;
+  async function ensureSetupReady(settings) {
+    const setupMessage = getSetupRequirementsMessage(settings);
+    if (!setupMessage) return true;
+    alert(setupMessage);
+    await openExtensionPopup();
+    return false;
+  }
+
+  function buildModalStyle() {
+    const link = createEl("link", {
+      attrs: {
+        rel: "stylesheet",
+        href: chrome.runtime.getURL("styles.css")
+      }
+    });
+    link.addEventListener("error", event => {
+      console.warn("Obsidian ChatGPT Bridge could not load modal stylesheet.", event);
+    });
+    return link;
   }
 
   function createDialogHost(dialogId, replaceAll = false) {
@@ -137,7 +132,7 @@
 
   async function mountDialogShell(dialogId, replaceAll = false) {
     const { host, shadowRoot } = createDialogHost(dialogId, replaceAll);
-    const stylesheet = await buildModalStyle();
+    const stylesheet = buildModalStyle();
     const overlay = createEl("div", {
       className: "obsidian-chatgpt-bridge-dialog",
       attrs: { role: "dialog", "aria-modal": "true" }
@@ -149,7 +144,7 @@
     return { overlay, panel };
   }
 
-  async function showFileExplorerDialog({ title, subtitle, startDir, selectedPaths, rootLabel }) {
+  async function showFileExplorerDialog({ title, subtitle, startDir, selectedPaths, rootLabel, doneLabel = "Done", showSelectionSummary = false }) {
     const state = {
       dir: normalizeVaultPath(startDir),
       selectedPaths
@@ -165,15 +160,21 @@
     const status = createEl("div", { className: "obsidian-chatgpt-bridge-modal-status" });
     const listWrapShell = createEl("div", { className: "obsidian-chatgpt-bridge-explorer-list-wrap" });
     const listWrap = createEl("div", { className: "obsidian-chatgpt-bridge-browser-list" });
+    const selectedSection = createEl("section", { className: "obsidian-chatgpt-bridge-file-section" });
+    const selectedHeading = createEl("div", { className: "obsidian-chatgpt-bridge-file-heading", text: "Selected Files" });
+    const selectedWrap = createEl("div", { className: "obsidian-chatgpt-bridge-selected-list" });
     const actions = createEl("div", { className: "obsidian-chatgpt-bridge-modal-actions" });
     const cancel = createEl("button", { text: "Cancel", attrs: { type: "button" } });
-    const done = createEl("button", { text: "Done", attrs: { type: "button" } });
+    const done = createEl("button", { text: doneLabel, attrs: { type: "button" } });
     done.className = "obsidian-chatgpt-bridge-primary";
     actions.append(cancel, done);
     toolbar.append(backButton, pathDisplay);
     listWrapShell.appendChild(listWrap);
+    selectedSection.append(selectedHeading, selectedWrap);
     body.append(toolbar, status, listWrapShell);
-    panel.append(heading, subtitleEl, body, actions);
+    if (showSelectionSummary) body.append(selectedSection);
+    body.append(actions);
+    panel.append(heading, subtitleEl, body);
 
     function setStatus(message, tone = "") {
       status.textContent = message || "";
@@ -181,7 +182,40 @@
       else status.removeAttribute("data-tone");
     }
 
+    function renderSelectedPaths() {
+      if (!showSelectionSummary) return;
+      selectedWrap.innerHTML = "";
+      const paths = sortNames([...state.selectedPaths]);
+      if (!paths.length) {
+        selectedWrap.appendChild(createEl("div", {
+          className: "obsidian-chatgpt-bridge-empty-state",
+          text: "No files selected yet."
+        }));
+        return;
+      }
+      for (const path of paths) {
+        const row = createEl("div", { className: "obsidian-chatgpt-bridge-selected-item" });
+        const pathText = createEl("div", {
+          className: "obsidian-chatgpt-bridge-selected-path",
+          text: path
+        });
+        const removeButton = createEl("button", {
+          text: "Remove",
+          className: "obsidian-chatgpt-bridge-secondary-action",
+          attrs: { type: "button" }
+        });
+        removeButton.addEventListener("click", () => {
+          state.selectedPaths.delete(path);
+          renderSelectedPaths();
+          renderItems(state.lastItems || []);
+        });
+        row.append(pathText, removeButton);
+        selectedWrap.appendChild(row);
+      }
+    }
+
     function renderItems(items) {
+      state.lastItems = items;
       listWrap.innerHTML = "";
       pathDisplay.textContent = state.dir ? `${state.dir}/` : "/";
       backButton.textContent = state.dir ? "< Back" : rootLabel;
@@ -220,6 +254,7 @@
         input.addEventListener("change", () => {
           if (input.checked) state.selectedPaths.add(item.path);
           else state.selectedPaths.delete(item.path);
+          renderSelectedPaths();
         });
         row.append(input, text);
         listWrap.appendChild(row);
@@ -272,6 +307,7 @@
     });
 
     await browse(state.dir);
+    renderSelectedPaths();
     return dialogPromise;
   }
 
@@ -283,7 +319,7 @@
     };
     const state = {
       projects: [],
-      project: "",
+      project: activeProjectContext?.projectName || "",
       selectedPaths: new Set()
     };
     const { overlay, panel } = await mountDialogShell(DIALOG_ID, true);
@@ -294,20 +330,13 @@
     const subtitle = createEl("p", {
       className: "obsidian-chatgpt-bridge-modal-copy",
       text: mode === "start"
-        ? `Choose the default project under ${normalizedSettings.defaultProjectRoot}/ for bridge writes.`
-        : "Choose a project, add notes, then load that context into ChatGPT."
+        ? `Click Start to continue immediately, or optionally set a default project for this session.`
+        : activeProjectContext?.projectName
+          ? `Choose notes to load into ChatGPT. Current default project: ${activeProjectContext.projectName}.`
+          : "Choose notes to load into ChatGPT."
     });
     const form = createEl("form");
-    const projectLabel = createEl("label", { text: `Project (${normalizedSettings.defaultProjectRoot})` });
-    projectLabel.className = "obsidian-chatgpt-bridge-field-label";
-    const projectSelect = createEl("select", {
-      className: "obsidian-chatgpt-bridge-select",
-      attrs: { "aria-label": "Project" }
-    });
     const status = createEl("div", { className: "obsidian-chatgpt-bridge-modal-status" });
-    projectLabel.appendChild(projectSelect);
-    form.append(projectLabel, status);
-
     const actions = createEl("div", { className: "obsidian-chatgpt-bridge-modal-actions" });
     const cancel = createEl("button", { text: "Cancel", attrs: { type: "button" } });
     const submit = createEl("button", {
@@ -317,6 +346,7 @@
     submit.className = "obsidian-chatgpt-bridge-primary";
     actions.append(cancel, submit);
 
+    let primaryFocus = null;
     let selectedWrap = null;
 
     function setStatus(message, tone = "") {
@@ -325,28 +355,8 @@
       else status.removeAttribute("data-tone");
     }
 
-    function projectBasePath(project = state.project) {
-      return project ? `${normalizedSettings.defaultProjectRoot}/${project}` : "";
-    }
-
     function selectedPaths() {
       return sortNames([...state.selectedPaths]);
-    }
-
-    function renderProjects(projects) {
-      const availableProjects = sortNames(new Set(projects.filter(Boolean)));
-      state.projects = availableProjects;
-      projectSelect.innerHTML = "";
-      projectSelect.appendChild(createEl("option", {
-        text: availableProjects.length ? "Select a project" : "No projects available",
-        attrs: { value: "" }
-      }));
-      for (const project of availableProjects) {
-        projectSelect.appendChild(createEl("option", {
-          text: project,
-          attrs: { value: project }
-        }));
-      }
     }
 
     function renderSelectedPaths() {
@@ -380,23 +390,6 @@
       }
     }
 
-    async function loadProjectList() {
-      setStatus(`Loading projects from ${normalizedSettings.defaultProjectRoot}/...`);
-      const result = await listObsidianDirectory(normalizedSettings.defaultProjectRoot);
-      if (!result.ok) {
-        setStatus(`Could not list projects: ${result.error || "unknown error"}`, "warn");
-        renderProjects([]);
-        return;
-      }
-      const projects = result.items.filter(item => item.isDirectory).map(item => item.name);
-      renderProjects(projects);
-      setStatus(projects.length ? "" : `No project folders were returned from ${normalizedSettings.defaultProjectRoot}/.`);
-      if (projects.length === 1) {
-        state.project = projects[0];
-        projectSelect.value = projects[0];
-      }
-    }
-
     cancel.addEventListener("click", () => closeDialog());
     overlay.addEventListener("click", event => {
       if (event.target === overlay) closeDialog();
@@ -408,76 +401,161 @@
       }
     }, { once: true });
 
-    projectSelect.addEventListener("change", () => {
-      state.project = projectSelect.value.trim();
-    });
+    if (mode === "start") {
+      const projectLabel = createEl("label", { text: "Default project for this session" });
+      projectLabel.className = "obsidian-chatgpt-bridge-field-label";
+      const projectSelect = createEl("select", {
+        className: "obsidian-chatgpt-bridge-select",
+        attrs: { "aria-label": "Default project" }
+      });
+      projectLabel.appendChild(projectSelect);
+      form.append(projectLabel);
+      primaryFocus = projectSelect;
 
-    if (mode === "load") {
-      const pickerActions = createEl("div", { className: "obsidian-chatgpt-bridge-picker-actions" });
-      const addProjectFiles = createEl("button", { text: "Add Project Files", attrs: { type: "button" } });
-      addProjectFiles.className = "obsidian-chatgpt-bridge-picker-button";
-      const addVaultFiles = createEl("button", { text: "Add Vault Files", attrs: { type: "button" } });
-      addVaultFiles.className = "obsidian-chatgpt-bridge-picker-button";
-      pickerActions.append(addProjectFiles, addVaultFiles);
+      const createSection = createEl("section", { className: "obsidian-chatgpt-bridge-file-section" });
+      const createHeading = createEl("div", { className: "obsidian-chatgpt-bridge-file-heading", text: "Create New Project" });
+      const createCopy = createEl("p", {
+        className: "obsidian-chatgpt-bridge-modal-copy",
+        text: `Creates ${normalizedSettings.defaultProjectRoot}/<Project Name>/Hub.md and selects it as the default project.`
+      });
+      const createRow = createEl("div", { className: "obsidian-chatgpt-bridge-inline-actions" });
+      const createInput = createEl("input", {
+        attrs: {
+          type: "text",
+          placeholder: "ProjectName",
+          "aria-label": "New project name"
+        }
+      });
+      const createButton = createEl("button", {
+        text: "Create Project",
+        className: "obsidian-chatgpt-bridge-picker-button",
+        attrs: { type: "button" }
+      });
+      createRow.append(createInput, createButton);
+      createSection.append(createHeading, createCopy, createRow);
+      form.append(createSection);
 
-      const selectedSection = createEl("section", { className: "obsidian-chatgpt-bridge-file-section" });
-      const selectedHeading = createEl("div", { className: "obsidian-chatgpt-bridge-file-heading", text: "Selected Files" });
-      selectedWrap = createEl("div", { className: "obsidian-chatgpt-bridge-selected-list" });
-      selectedSection.append(selectedHeading, selectedWrap, pickerActions);
+      function renderProjects(projects) {
+        const availableProjects = sortNames(new Set(projects.filter(Boolean)));
+        state.projects = availableProjects;
+        projectSelect.innerHTML = "";
+        projectSelect.appendChild(createEl("option", {
+          text: "No default project",
+          attrs: { value: "" }
+        }));
+        for (const project of availableProjects) {
+          projectSelect.appendChild(createEl("option", {
+            text: project,
+            attrs: { value: project }
+          }));
+        }
+        if (state.project && availableProjects.includes(state.project)) {
+          projectSelect.value = state.project;
+        } else {
+          state.project = "";
+          projectSelect.value = "";
+        }
+      }
 
-      addProjectFiles.addEventListener("click", async () => {
-        if (!state.project) {
-          setStatus("Choose a project first.", "warn");
+      async function loadProjectList() {
+        setStatus(`Loading projects from ${normalizedSettings.defaultProjectRoot}/...`);
+        const result = await listObsidianDirectory(normalizedSettings.defaultProjectRoot);
+        if (!result.ok) {
+          renderProjects([]);
+          setStatus(`No project root found at ${normalizedSettings.defaultProjectRoot}/. Create a new project or continue without a default project.`, "warn");
           return;
         }
-        const projectRoot = projectBasePath();
-        const projectSelected = new Set(selectedPaths().filter(path => path === projectRoot || path.startsWith(`${projectRoot}/`)));
-        const result = await showFileExplorerDialog({
-          title: "Project Files",
-          subtitle: `Browse folders inside ${projectRoot}/ and select notes to load.`,
-          startDir: projectRoot,
-          selectedPaths: projectSelected,
-          rootLabel: "Project root"
-        });
-        for (const path of [...state.selectedPaths]) {
-          if (path === projectRoot || path.startsWith(`${projectRoot}/`)) state.selectedPaths.delete(path);
+        const projects = result.items.filter(item => item.isDirectory).map(item => item.name);
+        renderProjects(projects);
+        setStatus(projects.length ? "" : `No project folders found under ${normalizedSettings.defaultProjectRoot}/. Create a new project or continue without a default project.`);
+        if (!state.project && projects.length === 1) {
+          state.project = projects[0];
+          projectSelect.value = projects[0];
         }
-        for (const path of result) state.selectedPaths.add(path);
-        renderSelectedPaths();
+      }
+
+      projectSelect.addEventListener("change", () => {
+        state.project = projectSelect.value.trim();
+        setStatus("");
       });
 
-      addVaultFiles.addEventListener("click", async () => {
-        const result = await showFileExplorerDialog({
-          title: "Vault Files",
-          subtitle: `Browse anywhere in vault ${normalizedSettings.vaultName} and select notes to load.`,
-          startDir: "",
-          selectedPaths: new Set(selectedPaths()),
-          rootLabel: "Vault root"
+      createButton.addEventListener("click", async () => {
+        const projectName = String(createInput.value || "").trim();
+        if (!projectName) {
+          setStatus("Enter a project name first.", "warn");
+          createInput.focus();
+          return;
+        }
+        setStatus(`Creating ${normalizedSettings.defaultProjectRoot}/${projectName}/...`);
+        createButton.disabled = true;
+        const result = await createObsidianProject(normalizedSettings.defaultProjectRoot, projectName);
+        createButton.disabled = false;
+        if (!result.ok) {
+          setStatus(`Could not create project: ${result.error || "unknown error"}`, "warn");
+          return;
+        }
+        createInput.value = "";
+        state.project = result.projectName;
+        await loadProjectList();
+        projectSelect.value = result.projectName;
+        setStatus(`Created ${result.projectPath}/ and selected it as the default project.`);
+      });
+
+      form.append(status, actions);
+      panel.append(heading, subtitle, form);
+
+      const dialogPromise = new Promise(resolve => {
+        form.addEventListener("submit", event => {
+          event.preventDefault();
+          closeDialog();
+          resolve({
+            project: state.project,
+            projectRoot: normalizedSettings.defaultProjectRoot
+          });
         });
-        state.selectedPaths = new Set(result);
-        renderSelectedPaths();
       });
 
-      form.append(selectedSection);
-      renderSelectedPaths();
+      if (!normalizedSettings.apiKey) {
+        setStatus("Set the Obsidian Local REST API key in the extension popup to enable project discovery.", "warn");
+        primaryFocus?.focus();
+        return dialogPromise;
+      }
+
+      await loadProjectList();
+      primaryFocus?.focus();
+      return dialogPromise;
     }
 
-    form.appendChild(actions);
+    const pickerActions = createEl("div", { className: "obsidian-chatgpt-bridge-picker-actions" });
+    const addFiles = createEl("button", { text: "Add Files", attrs: { type: "button" } });
+    addFiles.className = "obsidian-chatgpt-bridge-picker-button";
+    pickerActions.append(addFiles);
+
+    const selectedSection = createEl("section", { className: "obsidian-chatgpt-bridge-file-section" });
+    const selectedHeading = createEl("div", { className: "obsidian-chatgpt-bridge-file-heading", text: "Selected Files" });
+    selectedWrap = createEl("div", { className: "obsidian-chatgpt-bridge-selected-list" });
+    selectedSection.append(selectedHeading, selectedWrap, pickerActions);
+    form.append(selectedSection, status, actions);
     panel.append(heading, subtitle, form);
+    renderSelectedPaths();
+    primaryFocus = addFiles;
+
+    addFiles.addEventListener("click", async () => {
+      const result = await showFileExplorerDialog({
+        title: "Vault Files",
+        subtitle: `Browse anywhere in vault ${normalizedSettings.vaultName} and select notes to load.`,
+        startDir: "",
+        selectedPaths: new Set(selectedPaths()),
+        rootLabel: "Vault root"
+      });
+      state.selectedPaths = new Set(result);
+      renderSelectedPaths();
+      setStatus("");
+    });
 
     const dialogPromise = new Promise(resolve => {
       form.addEventListener("submit", event => {
         event.preventDefault();
-        const project = projectSelect.value.trim();
-        if (!project) {
-          setStatus("Choose a project first.", "warn");
-          return;
-        }
-        if (mode === "start") {
-          closeDialog();
-          resolve({ project, projectRoot: normalizedSettings.defaultProjectRoot });
-          return;
-        }
         const files = selectedPaths();
         if (!files.length) {
           setStatus("Choose at least one file to load.", "warn");
@@ -485,35 +563,30 @@
         }
         closeDialog();
         resolve({
-          project,
-          projectRoot: normalizedSettings.defaultProjectRoot,
+          project: activeProjectContext?.projectName || "",
+          projectRoot: activeProjectContext?.projectRoot || normalizedSettings.defaultProjectRoot,
           selectedPaths: files
         });
       });
     });
 
-    if (!normalizedSettings.apiKey) {
-      setStatus("Set the Obsidian Local REST API key in the extension popup to enable project and file discovery.", "warn");
-      projectSelect.focus();
-      return dialogPromise;
-    }
-
-    await loadProjectList();
-    projectSelect.focus();
+    primaryFocus?.focus();
     return dialogPromise;
   }
 
   async function startBridge() {
     const settings = await getSettings();
-    if (!settings.apiKey) {
-      alert("Set your Obsidian Local REST API key in the extension popup first. Install/enable the Obsidian Local REST API plugin, then paste its API key into the Obsidian ChatGPT Bridge popup.");
+    if (!await ensureSetupReady(settings)) {
       return;
     }
     const selection = await showBridgeDialog({ mode: "start", settings });
-    if (!selection?.project) return;
+    if (!selection) return;
+    activeProjectContext = selection.project
+      ? { projectName: selection.project, projectRoot: selection.projectRoot }
+      : null;
     const prompt = bridge.prompts.setupPrompt({
       vaultName: settings.vaultName,
-      projectName: selection.project,
+      projectName: selection.project || "",
       projectRoot: selection.projectRoot
     });
     if (!bridge.chatgptUi.insertAndSend(prompt)) {
@@ -524,17 +597,26 @@
 
   async function loadObsidianContext() {
     const settings = await getSettings();
-    if (!settings.apiKey) {
-      alert("Set your Obsidian Local REST API key in the extension popup first. Install/enable the Obsidian Local REST API plugin, then paste its API key into the Obsidian ChatGPT Bridge popup.");
+    if (!await ensureSetupReady(settings)) {
       return;
     }
 
-    const selection = await showBridgeDialog({ mode: "load", settings });
-    if (!selection?.project || !selection?.selectedPaths?.length) return;
+    const selectedPaths = await showFileExplorerDialog({
+      title: "Vault Files",
+      subtitle: activeProjectContext?.projectName
+        ? `Browse anywhere in vault ${settings.vaultName} and select notes to load. Current default project: ${activeProjectContext.projectName}.`
+        : `Browse anywhere in vault ${settings.vaultName} and select notes to load.`,
+      startDir: "",
+      selectedPaths: new Set(),
+      rootLabel: "Vault root",
+      doneLabel: "Load",
+      showSelectionSummary: true
+    });
+    if (!selectedPaths?.length) return;
 
     const sections = [];
     const missing = [];
-    for (const filepath of selection.selectedPaths) {
+    for (const filepath of selectedPaths) {
       const result = await fetchObsidianFile(filepath);
       if (result.ok) sections.push(`--- ${filepath} ---\n${result.content || ""}`.trim());
       else missing.push(`${filepath}: ${result.error || "not found"}`);
@@ -542,9 +624,9 @@
 
     let prompt = `${bridge.prompts.contextPrompt({
       vaultName: settings.vaultName,
-      projectName: selection.project,
-      projectRoot: selection.projectRoot,
-      selectedPaths: selection.selectedPaths
+      projectName: activeProjectContext?.projectName || "",
+      projectRoot: activeProjectContext?.projectRoot || settings.defaultProjectRoot,
+      selectedPaths
     })}\n\n`;
     if (sections.length) prompt += sections.join("\n\n") + "\n";
     if (missing.length) prompt += `\n--- Files not loaded ---\n${missing.map(x => `- ${x}`).join("\n")}\n`;

@@ -38,6 +38,17 @@
       "run_at": "document_idle"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "styles.css"
+      ],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ]
+    }
+  ],
   "action": {
     "default_title": "Obsidian ChatGPT Bridge",
     "default_popup": "src/popup/popup.html"

@@ -9,8 +9,18 @@
     <p>Adds Obsidian Bridge buttons to ChatGPT and can load current Obsidian context.</p>
     <p>Local REST API endpoint: <code>https://127.0.0.1:27124</code></p>
 
+    <h2>Setup</h2>
+    <ol>
+      <li>Install and enable the Obsidian Local REST API plugin in Obsidian.</li>
+      <li>Copy its API key into the field below.</li>
+      <li>Enter your vault name exactly as Obsidian uses it.</li>
+      <li>If HTTPS requests fail, download the local certificate and install it into the Root Certificate Authority store.</li>
+    </ol>
+    <p><a href="https://127.0.0.1:27124/obsidian-local-rest-api.crt" target="_blank" rel="noreferrer">Download Local REST API certificate</a></p>
+    <p>After changing settings or installing the certificate into the Root Certificate Authority store, save here and reload the extension if needed.</p>
+
     <label for="vaultName">Vault name</label>
-    <input id="vaultName" type="text" placeholder="SpencerLS" />
+    <input id="vaultName" type="text" placeholder="MyVault" />
 
     <label for="defaultProjectRoot">Default project root</label>
     <input id="defaultProjectRoot" type="text" placeholder="Projects" />
@@ -20,17 +30,6 @@
 
     <button id="save">Save settings</button>
     <div id="status" class="status"></div>
-
-    <hr />
-
-    <ul>
-      <li><code>obsidian_update@Vault/path.md</code></li>
-      <li><code>obsidian_create@Vault/path.md</code></li>
-      <li><code>obsidian_append@Vault/path.md</code></li>
-      <li><code>obsidian_prepend@Vault/path.md</code></li>
-      <li><code>obsidian_overwrite@Vault/path.md</code></li>
-    </ul>
-    <p>Most reliable format: put the marker as the first visible line of a code block.</p>
 
     <script type="module" src="index.js"></script>
   </body>

@@ -45,30 +45,35 @@
 
     const shouldShowStart = bridge.chatgptUi.isNewChatScreen();
 
-    let loadButton = document.getElementById(LOAD_BUTTON_ID);
-    if (!loadButton) {
-      loadButton = document.createElement("button");
-      loadButton.id = LOAD_BUTTON_ID;
-      loadButton.type = "button";
-      loadButton.textContent = "Load Obsidian Context";
-      loadButton.title = "Load current Obsidian files through Local REST API and send them to ChatGPT as context.";
-      loadButton.addEventListener("click", bridge.modal.loadObsidianContext);
-      container.appendChild(loadButton);
-    }
-
     let startButton = document.getElementById(START_BUTTON_ID);
     if (shouldShowStart) {
+      document.getElementById(LOAD_BUTTON_ID)?.remove();
       if (!startButton) {
         startButton = document.createElement("button");
         startButton.id = START_BUTTON_ID;
         startButton.type = "button";
         startButton.textContent = "Start Obsidian Bridge";
-        startButton.title = "Choose a project and send the bridge setup prompt to ChatGPT.";
+        startButton.title = "Send the bridge setup prompt to ChatGPT.";
         startButton.addEventListener("click", bridge.modal.startBridge);
       }
       if (startButton.parentElement !== container) container.appendChild(startButton);
     } else if (startButton) {
       startButton.remove();
+    }
+
+    let loadButton = document.getElementById(LOAD_BUTTON_ID);
+    if (!shouldShowStart) {
+      if (!loadButton) {
+        loadButton = document.createElement("button");
+        loadButton.id = LOAD_BUTTON_ID;
+        loadButton.type = "button";
+        loadButton.textContent = "Load Obsidian Context";
+        loadButton.title = "Load current Obsidian files through Local REST API and send them to ChatGPT as context.";
+        loadButton.addEventListener("click", bridge.modal.loadObsidianContext);
+      }
+      if (loadButton.parentElement !== container) container.appendChild(loadButton);
+    } else if (loadButton) {
+      loadButton.remove();
     }
   }
 

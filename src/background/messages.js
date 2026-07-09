@@ -1,4 +1,4 @@
-import { fetchObsidianFile, getSettings, listObsidianDirectory } from "./api.js";
+import { createObsidianProject, fetchObsidianFile, getSettings, listObsidianDirectory } from "./api.js";
 
 function openObsidianUri(message, sender, sendResponse) {
   const uri = String(message.uri || "").trim();
@@ -23,6 +23,21 @@ function openObsidianUri(message, sender, sendResponse) {
   return true;
 }
 
+function openExtensionPopup(sendResponse) {
+  if (!chrome.action || typeof chrome.action.openPopup !== "function") {
+    sendResponse({ ok: false, error: "Popup opening is not supported in this browser." });
+    return true;
+  }
+
+  chrome.action.openPopup(() => {
+    const err = chrome.runtime.lastError;
+    if (err) sendResponse({ ok: false, error: err.message });
+    else sendResponse({ ok: true });
+  });
+
+  return true;
+}
+
 export function registerMessageHandlers() {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!message) return;
@@ -36,6 +51,10 @@ export function registerMessageHandlers() {
       return true;
     }
 
+    if (message.type === "OPEN_EXTENSION_POPUP") {
+      return openExtensionPopup(sendResponse);
+    }
+
     if (message.type === "FETCH_OBSIDIAN_FILE") {
       fetchObsidianFile(message.filepath).then(sendResponse);
       return true;
@@ -43,6 +62,11 @@ export function registerMessageHandlers() {
 
     if (message.type === "LIST_OBSIDIAN_DIRECTORY") {
       listObsidianDirectory(message.dirpath).then(sendResponse);
+      return true;
+    }
+
+    if (message.type === "CREATE_OBSIDIAN_PROJECT") {
+      createObsidianProject(message.projectRoot, message.projectName).then(sendResponse);
       return true;
     }
   });

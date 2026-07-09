@@ -120,6 +120,30 @@
     }, 1400);
   }
 
+  function makeBridgeBlockButton({ action, vault, filepath, content }) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "obsidian-chatgpt-bridge-button";
+    button.textContent = labelForAction(action);
+    button.title = `${vault}/${filepath}`;
+    button.addEventListener("click", async event => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const ok = await bridge.chatgptUi.copyText(content);
+      if (!ok) {
+        flash(button, "Clipboard blocked");
+        return;
+      }
+
+      const fileResult = await fetchObsidianFile(filepath);
+      const mode = resolveWriteMode(action, fileResult.ok);
+      const uri = buildAdvancedUri({ vault, filepath, mode });
+      bridge.chatgptUi.openObsidian(uri);
+    });
+    return button;
+  }
+
   function makeButton(uri, label = "Open in Obsidian", options = {}) {
     const button = document.createElement("button");
     button.type = "button";
@@ -149,13 +173,23 @@
     return button;
   }
 
-  function modeForAction(action) {
+  function fetchObsidianFile(filepath) {
+    return new Promise(resolve => {
+      chrome.runtime.sendMessage(
+        { type: "FETCH_OBSIDIAN_FILE", filepath },
+        response => resolve(response || { ok: false })
+      );
+    });
+  }
+
+  function resolveWriteMode(action, fileExists) {
+    if (!fileExists) return "overwrite";
     switch (String(action || "").toLowerCase()) {
       case "append": return "append";
       case "prepend": return "prepend";
-      case "overwrite": return "overwrite";
-      case "create": return "new";
+      case "overwrite":
       case "update":
+      case "create":
       default: return "overwrite";
     }
   }
@@ -258,8 +292,7 @@
       const custom = parseCustomObsidianBlock(node);
       if (!custom) continue;
 
-      const mode = modeForAction(custom.action);
-      const fp = fingerprint(["custom", custom.action, custom.vault, custom.filepath, mode, custom.content]);
+      const fp = fingerprint(["custom", custom.action, custom.vault, custom.filepath, custom.content]);
       if (hasExistingBarAnywhere(fp)) {
         node.setAttribute(PROCESSED_ATTR, "custom");
         continue;
@@ -268,15 +301,14 @@
       node.setAttribute(PROCESSED_ATTR, "custom");
       GLOBAL_FPS.add(fp);
 
-      const uri = buildAdvancedUri({ vault: custom.vault, filepath: custom.filepath, mode });
       const bar = document.createElement("div");
       bar.className = BAR_CLASS;
       bar.dataset.obsidianFingerprint = fp;
-      bar.appendChild(makeButton(uri, labelForAction(custom.action), { copyText: custom.content }));
+      bar.appendChild(makeBridgeBlockButton(custom));
 
       const meta = document.createElement("span");
       meta.className = "obsidian-chatgpt-bridge-meta";
-      meta.textContent = `${custom.vault}/${custom.filepath} · mode=${mode}`;
+      meta.textContent = `${custom.vault}/${custom.filepath} · ${custom.action}`;
       bar.appendChild(meta);
 
       insertBarAfterCodeBlock(node, bar);
