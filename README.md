@@ -24,7 +24,7 @@ In practice, that means you can work in ChatGPT while still grounding the conver
 - Loads current markdown files from your vault through Obsidian Local REST API
 - Supports optional default project scope plus vault-wide ad hoc file loading
 - Detects structured `obsidian_*@...` bridge blocks in assistant output
-- Opens Obsidian write actions through Advanced URI
+- Writes note updates through Obsidian Local REST API
 - Uses an upsert model: write blocks create missing files automatically
 
 ## How it works
@@ -39,13 +39,12 @@ The bridge has two main flows:
 2. Write from the chat back into Obsidian
    - The chat responds with structured bridge blocks such as `obsidian_append@...` or `obsidian_update@...`
    - The extension detects those blocks and adds action buttons
-   - Clicking a button routes the content into Obsidian through Advanced URI
+   - Clicking a button writes the content through Obsidian Local REST API
 
 ## Current limitations
 
 - Only ChatGPT is supported today
-- Requires the Obsidian Local REST API plugin
-- Requires the Obsidian Advanced URI plugin for write actions
+- Requires the Obsidian Local REST API plugin for reads and writes
 - Uses a local HTTPS endpoint at `https://127.0.0.1:27124`
 - If your machine does not trust the Local REST API certificate yet, you must install it into the Root Certificate Authority store
 
@@ -69,8 +68,7 @@ Load `dist/` as an unpacked extension in your Chromium-based browser.
 In Obsidian:
 
 1. Install and enable `Local REST API`
-2. Install and enable `Advanced URI`
-3. Copy the Local REST API key
+2. Copy the Local REST API key
 
 ### 4. Trust the local certificate
 

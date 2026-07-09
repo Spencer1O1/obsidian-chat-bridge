@@ -38,7 +38,6 @@ To exercise the full workflow locally, you will also need:
 
 - Obsidian
 - Obsidian Local REST API
-- Obsidian Advanced URI
 - a trusted local certificate for `https://127.0.0.1:27124` if your system does not already trust it
 
 ## Making changes

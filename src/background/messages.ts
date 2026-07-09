@@ -2,6 +2,7 @@ import { fetchObsidianFile } from "./files";
 import { getSettings } from "./settings";
 import { listObsidianDirectory } from "./directories";
 import { createObsidianProject } from "./projects";
+import { writeObsidianFile } from "./writes";
 import type { RuntimeMessage } from "../shared/types";
 
 function openObsidianUri(message: Extract<RuntimeMessage, { type: "OPEN_OBSIDIAN_URI" }>, sender: chrome.runtime.MessageSender, sendResponse: (response: unknown) => void) {
@@ -26,5 +27,6 @@ export function registerMessageHandlers() {
     if (message.type === "FETCH_OBSIDIAN_FILE") return void fetchObsidianFile(message.filepath).then(sendResponse), true;
     if (message.type === "LIST_OBSIDIAN_DIRECTORY") return void listObsidianDirectory(message.dirpath).then(sendResponse), true;
     if (message.type === "CREATE_OBSIDIAN_PROJECT") return void createObsidianProject(message.projectRoot, message.projectName).then(sendResponse), true;
+    if (message.type === "WRITE_OBSIDIAN_FILE") return void writeObsidianFile(message.filepath, message.action, message.content).then(sendResponse), true;
   });
 }

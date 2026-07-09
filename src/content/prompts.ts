@@ -53,7 +53,7 @@ export function setupPrompt(options: PromptOptions = {}) {
     "- Before major overwrites or full updates, rely on current Obsidian context, current file contents from me, or project sources only if I say they are current.",
     "- Use obsidian_append for routine logs.",
     "- Use obsidian_overwrite only for whole-file rebuilds.",
-    "- Do not output raw obsidian:// URIs, Advanced URI links, clipboard instructions, or manual copy/paste instructions.",
+    "- Do not output raw obsidian:// URIs, clipboard instructions, or manual copy/paste instructions for vault writes.",
     "- Do not explain the workflow unless I ask."
   ].join("\n");
 
