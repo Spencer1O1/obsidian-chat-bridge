@@ -43,10 +43,18 @@
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 10px;
-  width: min(100%, 768px);
-  margin: 0 auto 10px auto;
-  padding: 0 6px;
+  width: 100%;
+  margin: 0 0 10px 0;
+  padding: 0;
   box-sizing: border-box;
+}
+
+#obsidian-chatgpt-bridge-floating[data-inline-host] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  align-self: center;
+  margin-left: auto;
 }
 
 #obsidian-chatgpt-bridge-start-bridge,
@@ -81,8 +89,8 @@
 }
 
 .obsidian-chatgpt-bridge-modal {
-  width: min(560px, calc(100vw - 32px));
-  max-height: min(80vh, 760px);
+  width: min(720px, calc(100vw - 32px));
+  max-height: min(85vh, 860px);
   overflow: auto;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 18px;
@@ -90,6 +98,12 @@
   background: Canvas;
   color: CanvasText;
   box-shadow: 0 24px 72px rgba(0, 0, 0, 0.35);
+}
+
+.obsidian-chatgpt-bridge-modal.explorer-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .obsidian-chatgpt-bridge-modal h2 {
@@ -127,11 +141,18 @@
 
 .obsidian-chatgpt-bridge-select {
   cursor: pointer;
-  appearance: auto;
+  appearance: none;
+  padding-right: 42px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5.25L7 9.25L11 5.25' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px 14px;
 }
 
 .obsidian-chatgpt-bridge-file-section {
   margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(127, 127, 127, 0.18);
 }
 
 .obsidian-chatgpt-bridge-file-header {
@@ -214,10 +235,179 @@
 }
 
 .obsidian-chatgpt-bridge-empty-state {
-  grid-column: 1 / -1;
   font-size: 12px;
   opacity: 0.72;
   padding: 4px 0;
+}
+
+.obsidian-chatgpt-bridge-selected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.obsidian-chatgpt-bridge-picker-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.obsidian-chatgpt-bridge-picker-button {
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+}
+
+.obsidian-chatgpt-bridge-picker-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.obsidian-chatgpt-bridge-selected-item,
+.obsidian-chatgpt-bridge-browser-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(127, 127, 127, 0.24);
+  border-radius: 12px;
+}
+
+.obsidian-chatgpt-bridge-browser-row {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.obsidian-chatgpt-bridge-selected-path {
+  font-size: 12px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.obsidian-chatgpt-bridge-browser-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+}
+
+.obsidian-chatgpt-bridge-browser-toolbar button {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  font: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+  opacity: 0.82;
+}
+
+.obsidian-chatgpt-bridge-browser-toolbar button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.obsidian-chatgpt-bridge-breadcrumb {
+  font-size: 12px;
+  line-height: 1.2;
+  opacity: 0.8;
+  word-break: break-word;
+}
+
+.obsidian-chatgpt-bridge-browser-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 0;
+  border-top: 1px solid rgba(127, 127, 127, 0.18);
+  border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+}
+
+.obsidian-chatgpt-bridge-explorer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  flex: 1 1 auto;
+  margin-top: 12px;
+}
+
+.obsidian-chatgpt-bridge-explorer-list-wrap {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.obsidian-chatgpt-bridge-browser-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  padding: 14px 0;
+  font: inherit;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.obsidian-chatgpt-bridge-browser-entry:hover {
+  text-decoration: none;
+}
+
+.obsidian-chatgpt-bridge-browser-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.obsidian-chatgpt-bridge-browser-kind {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.obsidian-chatgpt-bridge-browser-chevron {
+  font-size: 14px;
+  opacity: 0.65;
+}
+
+.obsidian-chatgpt-bridge-browser-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.obsidian-chatgpt-bridge-browser-file:hover {
+  background: transparent;
+}
+
+.obsidian-chatgpt-bridge-browser-row,
+.obsidian-chatgpt-bridge-browser-file {
+  border-bottom: 1px solid rgba(127, 127, 127, 0.12);
+}
+
+.obsidian-chatgpt-bridge-browser-row:last-child,
+.obsidian-chatgpt-bridge-browser-file:last-child {
+  border-bottom: 0;
 }
 
 .obsidian-chatgpt-bridge-modal-status {

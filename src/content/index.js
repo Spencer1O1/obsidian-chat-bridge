@@ -10,10 +10,20 @@
     const composer = bridge.chatgptUi.findComposer();
     if (!composer) return null;
     const form = composer.closest("form");
+    const sendButton = form?.querySelector("button[data-testid='send-button'], button[aria-label='Send prompt'], button[aria-label*='Send']");
+    const actionRow = sendButton?.parentElement;
+    if (actionRow?.parentElement) {
+      return {
+        parent: actionRow.parentElement,
+        anchor: actionRow,
+        inline: true
+      };
+    }
     if (form?.parentElement) {
       return {
         parent: form.parentElement,
-        anchor: form
+        anchor: form,
+        inline: false
       };
     }
     return null;
@@ -28,6 +38,7 @@
       container = document.createElement("div");
       container.id = FLOATING_CONTAINER_ID;
     }
+    container.toggleAttribute("data-inline-host", Boolean(host.inline));
     if (container.parentElement !== host.parent || container.nextElementSibling !== host.anchor) {
       host.parent.insertBefore(container, host.anchor);
     }

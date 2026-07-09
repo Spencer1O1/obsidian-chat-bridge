@@ -1,4 +1,5 @@
 export const DEFAULT_API_BASE = "https://127.0.0.1:27124";
+export const DEFAULT_PROJECT_ROOT = "Projects";
 const NETWORK_ERROR_HELP = "Network request failed. If Obsidian Local REST API uses a self-signed HTTPS certificate, the browser extension may not trust it yet.";
 
 function encodePathBySegment(filepath) {
@@ -43,11 +44,15 @@ function candidateVaultUrls(base, path, kind = "file") {
 
 export async function getSettings() {
   const stored = await chrome.storage.local.get({
-    apiKey: ""
+    apiKey: "",
+    vaultName: "",
+    defaultProjectRoot: DEFAULT_PROJECT_ROOT
   });
   return {
     apiBase: DEFAULT_API_BASE,
-    apiKey: stored.apiKey || ""
+    apiKey: stored.apiKey || "",
+    vaultName: String(stored.vaultName || "").trim(),
+    defaultProjectRoot: normalizeVaultPath(stored.defaultProjectRoot || DEFAULT_PROJECT_ROOT) || DEFAULT_PROJECT_ROOT
   };
 }
 
