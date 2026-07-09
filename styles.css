@@ -345,13 +345,14 @@
 }
 
 .obsidian-chat-bridge-modal.explorer-modal .obsidian-chat-bridge-modal-actions {
-  margin-top: 0;
+  margin-top: 16px;
   flex-shrink: 0;
 }
 
 .obsidian-chat-bridge-modal.explorer-modal .obsidian-chat-bridge-file-section {
   margin-top: 0;
   padding-top: 12px;
+  padding-bottom: 4px;
 }
 
 .obsidian-chat-bridge-browser-entry {

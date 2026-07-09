@@ -1,36 +1,106 @@
-import { BAR_CLASS, CUSTOM_PREFIX_RE, PROCESSED_ATTR } from "../shared/constants";
+import { BAR_CLASS, CUSTOM_PREFIX_RE } from "../shared/constants";
+
+const BRIDGE_MARKER_RE = /obsidian_(create|append|prepend|overwrite)@/i;
 
 const fingerprint = (parts: unknown[]) => parts.map(part => String(part || "")).join("\u241F");
+
 const getCodeText = (pre: Element) => {
   const clone = pre.cloneNode(true) as HTMLElement;
   clone.querySelectorAll(`.${BAR_CLASS}, .obsidian-chat-bridge-button`).forEach(node => node.remove());
   return (clone.textContent || "").trim();
 };
-const getTopLevelPres = (root: ParentNode = document) => Array.from(root.querySelectorAll("pre")).filter(pre => !pre.parentElement?.closest("pre"));
-const findMessageRoot = (el: Element) => el.closest("[data-message-author-role], article, main") || document.body;
-const findCodeBlockContainer = (pre: Element) => {
-  const root = findMessageRoot(pre);
-  let container: Element = pre;
-  let el: Element = pre;
-  while (el.parentElement && el.parentElement !== root && el.parentElement !== document.body) {
-    const parent = el.parentElement;
-    const looksCard = parent.querySelectorAll("pre").length === 1
-      && (parent.querySelector("button, [role='button']") || parent.scrollWidth > parent.clientWidth + 8 || /overflow|scroll|rounded|contain|code/i.test(String(parent.className || "")));
-    if (!looksCard) break;
-    container = el = parent;
-  }
-  return container;
+
+/** ChatGPT nests <pre> inside <pre>; scan the innermost block that contains a bridge marker. */
+const getBridgePres = (root: ParentNode = document) => {
+  const candidates = Array.from(root.querySelectorAll("pre")).filter(pre => BRIDGE_MARKER_RE.test(getCodeText(pre)));
+  return candidates.filter(pre => !candidates.some(other => other !== pre && pre.contains(other)));
 };
-const findBarForFingerprint = (fp: string) => document.querySelector<HTMLElement>(`.${BAR_CLASS}[data-obsidian-fingerprint="${CSS.escape(fp)}"]`);
-const removeBarsAfter = (container: Element) => {
-  let next = container.nextElementSibling;
-  while (next?.classList?.contains(BAR_CLASS)) {
-    const remove = next;
-    next = next.nextElementSibling;
+
+const outerPre = (pre: Element) => {
+  let outer: Element = pre;
+  while (outer.parentElement?.closest("pre")) {
+    outer = outer.parentElement.closest("pre")!;
+  }
+  return outer;
+};
+
+const parseTarget = (target: string) => {
+  const slash = target.indexOf("/");
+  return slash <= 0 || slash === target.length - 1 ? null : { vault: target.slice(0, slash).trim(), filepath: target.slice(slash + 1).trim() };
+};
+
+const parseCustomObsidianBlock = (pre: Element) => {
+  const text = getCodeText(pre);
+  if (!text) return null;
+  const lines = text.split(/\r?\n/);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index].trim().replace(/^Markdown(?=obsidian_)/i, "");
+    const match = line.match(CUSTOM_PREFIX_RE);
+    if (!match) continue;
+    const parsed = parseTarget(match[2]);
+    if (!parsed) continue;
+    return {
+      action: match[1].toLowerCase(),
+      vault: parsed.vault,
+      filepath: parsed.filepath,
+      content: lines.slice(index + 1).join("\n").trim()
+    };
+  }
+  return null;
+};
+
+const writeObsidianFile = (filepath: string, action: string, content: string) => new Promise<{ ok: boolean; error?: string }>(resolve =>
+  chrome.runtime.sendMessage({ type: "WRITE_OBSIDIAN_FILE", filepath, action, content }, response => resolve(response || { ok: false, error: "No response from extension." }))
+);
+
+const labelForAction = (action: string) => ({ append: "Append to Obsidian", prepend: "Prepend to Obsidian", overwrite: "Overwrite in Obsidian", create: "Create in Obsidian" }[action] || "Overwrite in Obsidian");
+
+const ensureBar = (host: Element, fp: string, custom: { action: string; vault: string; filepath: string; content: string }) => {
+  const next = host.nextElementSibling;
+  if (next?.classList.contains(BAR_CLASS) && next instanceof HTMLElement && next.dataset.obsidianFingerprint === fp) return;
+
+  let sibling = host.nextElementSibling;
+  while (sibling?.classList.contains(BAR_CLASS)) {
+    const remove = sibling;
+    sibling = sibling.nextElementSibling;
     remove.remove();
   }
+
+  const bar = document.createElement("div");
+  bar.className = BAR_CLASS;
+  bar.dataset.obsidianFingerprint = fp;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "obsidian-chat-bridge-button";
+  button.textContent = labelForAction(custom.action);
+  button.addEventListener("click", async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = "Saving...";
+    const result = await writeObsidianFile(custom.filepath, custom.action, custom.content);
+    button.disabled = false;
+    button.textContent = result.ok ? "Saved" : (result.error || "Write failed");
+    if (!result.ok) window.setTimeout(() => { button.textContent = originalLabel; }, 2500);
+  });
+  bar.append(
+    button,
+    Object.assign(document.createElement("span"), { className: "obsidian-chat-bridge-meta", textContent: `${custom.vault}/${custom.filepath} · ${custom.action}` })
+  );
+  host.insertAdjacentElement("afterend", bar);
 };
-const removeDuplicateBars = () => {
+
+export function processCustomObsidianBlocks(root: ParentNode = document) {
+  getBridgePres(root).forEach(pre => {
+    const custom = parseCustomObsidianBlock(pre);
+    if (!custom) return;
+    const fp = fingerprint(["custom", custom.action, custom.vault, custom.filepath, custom.content]);
+    ensureBar(outerPre(pre), fp, custom);
+  });
+}
+
+export function removeDuplicateBars() {
   const seen = new Set<string>();
   Array.from(document.querySelectorAll<HTMLElement>(`.${BAR_CLASS}[data-obsidian-fingerprint]`)).forEach(bar => {
     const fp = bar.dataset.obsidianFingerprint;
@@ -38,88 +108,4 @@ const removeDuplicateBars = () => {
     if (seen.has(fp)) bar.remove();
     else seen.add(fp);
   });
-};
-const parseTarget = (target: string) => {
-  const slash = target.indexOf("/");
-  return slash <= 0 || slash === target.length - 1 ? null : { vault: target.slice(0, slash).trim(), filepath: target.slice(slash + 1).trim() };
-};
-const writeObsidianFile = (filepath: string, action: string, content: string) => new Promise<{ ok: boolean; error?: string }>(resolve =>
-  chrome.runtime.sendMessage({ type: "WRITE_OBSIDIAN_FILE", filepath, action, content }, response => resolve(response || { ok: false, error: "No response from extension." }))
-);
-const labelForAction = (action: string) => ({ append: "Append to Obsidian", prepend: "Prepend to Obsidian", overwrite: "Overwrite in Obsidian", create: "Create in Obsidian" }[action] || "Overwrite in Obsidian");
-const parseCustomObsidianBlock = (pre: Element) => {
-  const text = getCodeText(pre);
-  if (!text) return null;
-  const lines = text.split(/\r?\n/);
-  const first = (lines[0] || "").trim();
-  const direct = first.match(CUSTOM_PREFIX_RE);
-  if (direct) {
-    const parsed = parseTarget(direct[2]);
-    return parsed ? { action: direct[1].toLowerCase(), vault: parsed.vault, filepath: parsed.filepath, content: lines.slice(1).join("\n").trim() } : null;
-  }
-  const code = pre.querySelector("code");
-  const rawValues = [
-    code?.getAttribute("class") || "",
-    code?.getAttribute("data-language") || "",
-    code?.getAttribute("data-lang") || "",
-    pre.getAttribute("data-language") || "",
-    pre.getAttribute("data-lang") || "",
-    ...(code ? Array.from(code.classList) : [])
-  ];
-  const marker = rawValues.map(value => String(value || "").replace(/^language-/, "").trim().match(CUSTOM_PREFIX_RE)).find(Boolean);
-  if (!marker) return null;
-  const parsed = parseTarget(marker[2]);
-  return parsed ? { action: marker[1].toLowerCase(), vault: parsed.vault, filepath: parsed.filepath, content: text.trim() } : null;
-};
-const insertBarAfterCodeBlock = (container: Element, bar: HTMLElement) => {
-  removeBarsAfter(container);
-  container.insertAdjacentElement("afterend", bar);
-};
-
-export function processCustomObsidianBlocks(root: ParentNode = document) {
-  getTopLevelPres(root).forEach(node => {
-    const custom = parseCustomObsidianBlock(node);
-    if (!custom) {
-      node.removeAttribute(PROCESSED_ATTR);
-      return;
-    }
-
-    const fp = fingerprint(["custom", custom.action, custom.vault, custom.filepath, custom.content]);
-    const container = findCodeBlockContainer(node);
-    const adjacentBar = container.nextElementSibling;
-    if (adjacentBar?.classList.contains(BAR_CLASS) && adjacentBar instanceof HTMLElement && adjacentBar.dataset.obsidianFingerprint === fp) {
-      node.setAttribute(PROCESSED_ATTR, "custom");
-      return;
-    }
-
-    const orphan = findBarForFingerprint(fp);
-    if (orphan && orphan.previousElementSibling !== container && !container.contains(orphan)) orphan.remove();
-
-    node.setAttribute(PROCESSED_ATTR, "custom");
-    const bar = document.createElement("div");
-    bar.className = BAR_CLASS;
-    bar.dataset.obsidianFingerprint = fp;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "obsidian-chat-bridge-button";
-    button.textContent = labelForAction(custom.action);
-    button.addEventListener("click", async event => {
-      event.preventDefault();
-      event.stopPropagation();
-      const originalLabel = button.textContent;
-      button.disabled = true;
-      button.textContent = "Saving...";
-      const result = await writeObsidianFile(custom.filepath, custom.action, custom.content);
-      button.disabled = false;
-      button.textContent = result.ok ? "Saved" : (result.error || "Write failed");
-      if (!result.ok) window.setTimeout(() => { button.textContent = originalLabel; }, 2500);
-    });
-    bar.append(
-      button,
-      Object.assign(document.createElement("span"), { className: "obsidian-chat-bridge-meta", textContent: `${custom.vault}/${custom.filepath} · ${custom.action}` })
-    );
-    insertBarAfterCodeBlock(container, bar);
-  });
 }
-
-export { removeDuplicateBars };
