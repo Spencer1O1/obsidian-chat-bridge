@@ -118,6 +118,15 @@ See `CONTRIBUTING.md`.
 
 See `SECURITY.md`.
 
+## Screenshots
+
+<img width="1434" height="564" alt="image" src="https://github.com/user-attachments/assets/944e143a-53ce-4b8b-8817-e59343eb0cb1" />
+<img width="1532" height="750" alt="image" src="https://github.com/user-attachments/assets/a3c04a18-a24e-42b7-8729-2b47fc78ff7b" />
+<img width="1448" height="1198" alt="image" src="https://github.com/user-attachments/assets/417bd563-a58e-45bd-a194-d96047147478" />
+<img width="1540" height="860" alt="image" src="https://github.com/user-attachments/assets/b03c84c3-bc7f-4f37-afaf-a87098253a37" />
+<img width="1526" height="1200" alt="image" src="https://github.com/user-attachments/assets/d99431ed-d807-4bfd-ac6c-38ed13f3787e" />
+<img width="1476" height="900" alt="image" src="https://github.com/user-attachments/assets/c72b06a7-36b2-42cd-89b0-da9b755c389c" />
+
 ## License
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
